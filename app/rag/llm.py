@@ -6,6 +6,7 @@ is installed. Install the one you want: `pip install anthropic` or `pip install
 openai`, set the matching key, and set LLM_BACKEND.
 """
 from abc import ABC, abstractmethod
+from collections.abc import Iterator
 
 from app.core.config import settings
 
@@ -15,6 +16,11 @@ class Generator(ABC):
     def generate(self, system: str, user: str) -> str:
         ...
 
+    def stream(self, system: str, user: str) -> Iterator[str]:
+        """Yield the answer in pieces. Default: one chunk (override for true
+        token streaming)."""
+        yield self.generate(system, user)
+
 
 class FakeGenerator(Generator):
     """Deterministic, offline. Returns a templated grounded answer so the full
@@ -22,6 +28,10 @@ class FakeGenerator(Generator):
 
     def generate(self, system: str, user: str) -> str:
         return "Based on the provided sources [1], here is a grounded answer."
+
+    def stream(self, system: str, user: str) -> Iterator[str]:
+        for word in self.generate(system, user).split(" "):
+            yield word + " "
 
 
 class AnthropicGenerator(Generator):
@@ -44,6 +54,15 @@ class AnthropicGenerator(Generator):
         )
         return "".join(b.text for b in resp.content if b.type == "text")
 
+    def stream(self, system: str, user: str) -> Iterator[str]:  # pragma: no cover
+        with self._client.messages.stream(
+            model=self._model,
+            max_tokens=1024,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+        ) as stream:
+            yield from stream.text_stream
+
 
 class OpenAIGenerator(Generator):
     DEFAULT_MODEL = "gpt-4o-mini"
@@ -65,6 +84,20 @@ class OpenAIGenerator(Generator):
             ],
         )
         return resp.choices[0].message.content or ""
+
+    def stream(self, system: str, user: str) -> Iterator[str]:  # pragma: no cover
+        stream = self._client.chat.completions.create(
+            model=self._model,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            stream=True,
+        )
+        for chunk in stream:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield delta
 
 
 def get_generator(backend: str | None = None) -> Generator:

@@ -88,6 +88,10 @@ pytest -q          # 11 tests: auth flows + multi-tenant isolation
 | POST   | `/workspaces/{id}/search`         | any           | Semantic search (org-scoped)  |
 | DELETE | `/documents/{id}`                 | admin/manager | Delete a document + vectors   |
 | POST   | `/workspaces/{id}/chat`           | any           | Ask a grounded, cited question|
+| POST   | `/workspaces/{id}/chat/stream`    | any           | Streamed (SSE) answer         |
+| GET    | `/workspaces/{id}/conversations`  | any           | List chat conversations       |
+| GET    | `/conversations/{id}/messages`    | any           | Conversation message history  |
+| POST   | `/messages/{id}/feedback`         | any           | 👍/👎 on an assistant message  |
 
 ## Known simplifications (intentional for Phase 0)
 

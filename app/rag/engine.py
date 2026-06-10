@@ -58,9 +58,12 @@ class RagEngine:
         self.candidate_k = candidate_k
         self.top_n = top_n
 
-    def answer(self, query: str, *, where: dict | None = None) -> RagAnswer:
+    def _retrieve(self, query: str, where: dict | None):
         candidates = self.retriever.retrieve(query, where=where, limit=self.candidate_k)
-        reranked = self.reranker.rerank(query, candidates, top_n=self.top_n)
+        return self.reranker.rerank(query, candidates, top_n=self.top_n)
+
+    def answer(self, query: str, *, where: dict | None = None) -> RagAnswer:
+        reranked = self._retrieve(query, where)
         if not reranked:
             return RagAnswer(
                 answer="I don't have enough information in the documents to answer that.",
@@ -70,3 +73,15 @@ class RagEngine:
         user_prompt = f"Sources:\n{context}\n\nQuestion: {query}"
         answer_text = self.generator.generate(SYSTEM_PROMPT, user_prompt)
         return RagAnswer(answer=answer_text, citations=citations)
+
+    def stream(self, query: str, *, where: dict | None = None):
+        """Return (citations, token_iterator). Citations are known up front;
+        the answer text streams token by token."""
+        reranked = self._retrieve(query, where)
+        if not reranked:
+            return [], iter(
+                ["I don't have enough information in the documents to answer that."]
+            )
+        context, citations = build_context(reranked)
+        user_prompt = f"Sources:\n{context}\n\nQuestion: {query}"
+        return citations, self.generator.stream(SYSTEM_PROMPT, user_prompt)
