@@ -9,3 +9,9 @@ email-validator==2.2.0
 pyjwt==2.10.1
 bcrypt==4.2.1
 python-multipart==0.0.20
+# Phase 1: ingestion + vector store
+pypdf==5.1.0
+python-docx==1.1.2
+python-pptx==1.0.2
+qdrant-client==1.12.1
+rank-bm25==0.2.2

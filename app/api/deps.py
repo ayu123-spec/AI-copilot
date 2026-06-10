@@ -48,3 +48,17 @@ def require_roles(*roles: UserRole):
         return user
 
     return _checker
+
+
+def get_embedder():
+    """Embedder dependency. Overridden in tests with a fake embedder."""
+    from app.embeddings.embedders import get_embedder as _get
+
+    return _get()
+
+
+def get_vector_store():
+    """Vector store dependency. Overridden in tests with an in-memory store."""
+    from app.vectorstore.qdrant_store import VectorStore
+
+    return VectorStore()

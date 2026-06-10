@@ -1,0 +1,4 @@
+# Optional: local embeddings via sentence-transformers (pulls torch, ~GBs).
+# Only needed when EMBEDDING_BACKEND=local. Skip if using openai or fake.
+-r requirements.txt
+sentence-transformers==3.3.1

@@ -23,6 +23,23 @@ class Settings(BaseSettings):
     DEFAULT_UPLOAD_LIMIT_MB: int = 50
     DEFAULT_STORAGE_QUOTA_MB: int = 5000
 
+    # Embeddings: backend is "local" (sentence-transformers), "openai", or "fake".
+    EMBEDDING_BACKEND: str = "local"
+    EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"  # 384-dim, light to download
+    OPENAI_API_KEY: str | None = None
+
+    # Vector store. If QDRANT_URL is unset, an embedded on-disk store is used.
+    QDRANT_URL: str | None = None
+    QDRANT_PATH: str = "./qdrant_storage"
+    QDRANT_COLLECTION: str = "documents"
+
+    # Chunking defaults
+    CHUNK_STRATEGY: str = "recursive"
+
+    # Re-ranking: "cross_encoder" (sentence-transformers) or "fake" (offline/tests)
+    RERANK_BACKEND: str = "cross_encoder"
+    RERANK_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
     LOG_LEVEL: str = "INFO"
 
 

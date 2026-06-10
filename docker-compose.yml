@@ -23,8 +23,18 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://copilot:copilot@db:5432/copilot
       JWT_SECRET: change-me-in-production
+      QDRANT_URL: http://qdrant:6333
+      EMBEDDING_BACKEND: local
     ports:
       - "8000:8000"
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrantdata:/qdrant/storage
+
 volumes:
   pgdata:
+  qdrantdata:
