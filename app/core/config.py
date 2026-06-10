@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     RERANK_BACKEND: str = "cross_encoder"
     RERANK_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+    # Answer generation: "anthropic" (Claude), "openai", or "fake" (offline/tests)
+    LLM_BACKEND: str = "fake"
+    LLM_MODEL: str = ""  # blank = use the backend's default model
+    ANTHROPIC_API_KEY: str | None = None
+
     LOG_LEVEL: str = "INFO"
 
 

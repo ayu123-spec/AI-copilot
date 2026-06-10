@@ -57,8 +57,41 @@ def get_embedder():
     return _get()
 
 
-def get_vector_store():
-    """Vector store dependency. Overridden in tests with an in-memory store."""
-    from app.vectorstore.qdrant_store import VectorStore
+_vector_store = None
 
-    return VectorStore()
+
+def get_vector_store():
+    """Vector store dependency (singleton — avoids re-opening the embedded store).
+    Overridden in tests with an in-memory store."""
+    global _vector_store
+    if _vector_store is None:
+        from app.vectorstore.qdrant_store import VectorStore
+
+        _vector_store = VectorStore()
+    return _vector_store
+
+
+_reranker = None
+
+
+def get_reranker():
+    """Re-ranker dependency (singleton — loads any model once). Overridden in tests."""
+    global _reranker
+    if _reranker is None:
+        from app.rag.rerank import get_reranker as _get
+
+        _reranker = _get()
+    return _reranker
+
+
+_generator = None
+
+
+def get_generator():
+    """LLM generator dependency (singleton — one client). Overridden in tests."""
+    global _generator
+    if _generator is None:
+        from app.rag.llm import get_generator as _get
+
+        _generator = _get()
+    return _generator

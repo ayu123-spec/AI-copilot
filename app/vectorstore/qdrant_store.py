@@ -73,6 +73,8 @@ class VectorStore:
     def search(
         self, vector: list[float], limit: int = 5, where: dict | None = None
     ) -> list[SearchResult]:
+        if not self.client.collection_exists(self.collection):
+            return []
         hits = self.client.query_points(
             collection_name=self.collection,
             query=vector,
@@ -90,6 +92,8 @@ class VectorStore:
     def fetch_all(self, where: dict | None = None, batch: int = 256) -> list[SearchResult]:
         """Page through every stored chunk matching `where`. Used to build the
         BM25 index for hybrid search, so it must carry the same tenant filter."""
+        if not self.client.collection_exists(self.collection):
+            return []
         results: list[SearchResult] = []
         offset = None
         while True:

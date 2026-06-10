@@ -87,6 +87,7 @@ pytest -q          # 11 tests: auth flows + multi-tenant isolation
 | GET    | `/workspaces/{id}/documents`      | any           | List documents in a workspace |
 | POST   | `/workspaces/{id}/search`         | any           | Semantic search (org-scoped)  |
 | DELETE | `/documents/{id}`                 | admin/manager | Delete a document + vectors   |
+| POST   | `/workspaces/{id}/chat`           | any           | Ask a grounded, cited question|
 
 ## Known simplifications (intentional for Phase 0)
 

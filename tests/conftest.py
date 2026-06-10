@@ -32,8 +32,15 @@ async def client():
 
     # Phase 1: use a deterministic offline embedder and an ephemeral vector store
     # so document/search tests run without model downloads or a Qdrant server.
-    from app.api.deps import get_embedder, get_vector_store
+    from app.api.deps import (
+        get_embedder,
+        get_generator,
+        get_reranker,
+        get_vector_store,
+    )
     from app.embeddings.embedders import FakeEmbedder
+    from app.rag.llm import FakeGenerator
+    from app.rag.rerank import FakeReranker
     from app.vectorstore.qdrant_store import VectorStore
 
     fake_embedder = FakeEmbedder(dim=384)
@@ -42,6 +49,8 @@ async def client():
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_embedder] = lambda: fake_embedder
     app.dependency_overrides[get_vector_store] = lambda: memory_store
+    app.dependency_overrides[get_reranker] = lambda: FakeReranker()
+    app.dependency_overrides[get_generator] = lambda: FakeGenerator()
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
