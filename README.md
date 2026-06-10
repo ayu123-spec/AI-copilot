@@ -101,8 +101,27 @@ pytest -q          # 11 tests: auth flows + multi-tenant isolation
   migrations so schema changes are versioned.
 - `JWT_SECRET` defaults to a placeholder; set a real one via `.env` everywhere.
 
-## Next: Phase 2
+## Evaluation
 
-The RAG engine: BM25 sparse retrieval alongside the existing dense search, hybrid
-fusion, cross-encoder re-ranking, citation building, and a streaming chat answer
-endpoint. See `BUILD_PLAN.md`.
+Retrieval quality is measured with a small, reproducible harness:
+
+```
+python -m app.evaluation.run
+```
+
+It reports hit rate, MRR, and precision@k over a fixed set of questions. Run it with
+`EMBEDDING_BACKEND=local` (after `pip install -r requirements-ml.txt`) for numbers that
+reflect real embedding quality, and expand the cases in `app/evaluation/run.py` to match
+your own documents. For answer-level metrics (faithfulness, answer relevance), RAGAS can
+be layered on top with an LLM judge.
+
+| Metric        | Score |
+|---------------|-------|
+| Hit rate      | TBD   |
+| MRR           | TBD   |
+| Precision@k   | TBD   |
+
+## Next: Phase 3
+
+Agents and orchestration: a LangGraph workflow with a research agent and a SQL agent,
+plus long-term memory. See `BUILD_PLAN.md`.
