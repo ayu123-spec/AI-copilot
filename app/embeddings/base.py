@@ -1,4 +1,5 @@
 """Embedder interface. Implementations live in embedders.py."""
+
 from abc import ABC, abstractmethod
 
 

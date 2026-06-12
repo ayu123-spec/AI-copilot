@@ -5,6 +5,7 @@ complementing dense vector search (good at meaning). We build the index over a
 list of candidate chunks; in the pipeline those come from the workspace's stored
 chunks, so it stays tenant-scoped.
 """
+
 import re
 from dataclasses import dataclass, field
 
@@ -34,8 +35,15 @@ class BM25Index:
         if not self._bm25:
             return []
         scores = self._bm25.get_scores(_tokenize(query))
-        ranked = sorted(zip(self._docs, scores), key=lambda ds: ds[1], reverse=True)
+        ranked = sorted(
+            zip(self._docs, scores, strict=False), key=lambda ds: ds[1], reverse=True
+        )
         return [
-            SparseHit(id=d["id"], score=float(s), text=d["text"], metadata=d.get("metadata", {}))
+            SparseHit(
+                id=d["id"],
+                score=float(s),
+                text=d["text"],
+                metadata=d.get("metadata", {}),
+            )
             for d, s in ranked[:limit]
         ]

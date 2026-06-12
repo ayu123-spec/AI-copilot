@@ -1,9 +1,21 @@
 from app.rag.sparse import BM25Index
 
 DOCS = [
-    {"id": "1", "text": "cats and dogs are common household pets", "metadata": {"source": "a"}},
-    {"id": "2", "text": "python is a popular programming language", "metadata": {"source": "b"}},
-    {"id": "3", "text": "revenue grew strongly in the cloud business", "metadata": {"source": "c"}},
+    {
+        "id": "1",
+        "text": "cats and dogs are common household pets",
+        "metadata": {"source": "a"},
+    },
+    {
+        "id": "2",
+        "text": "python is a popular programming language",
+        "metadata": {"source": "b"},
+    },
+    {
+        "id": "3",
+        "text": "revenue grew strongly in the cloud business",
+        "metadata": {"source": "c"},
+    },
 ]
 
 

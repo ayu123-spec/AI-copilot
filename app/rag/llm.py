@@ -5,6 +5,7 @@ The real SDKs are imported lazily, so this module always imports even if neither
 is installed. Install the one you want: `pip install anthropic` or `pip install
 openai`, set the matching key, and set LLM_BACKEND.
 """
+
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 
@@ -13,8 +14,7 @@ from app.core.config import settings
 
 class Generator(ABC):
     @abstractmethod
-    def generate(self, system: str, user: str) -> str:
-        ...
+    def generate(self, system: str, user: str) -> str: ...
 
     def stream(self, system: str, user: str) -> Iterator[str]:
         """Yield the answer in pieces. Default: one chunk (override for true

@@ -12,6 +12,7 @@ strategies that share a common interface so they're interchangeable:
 `semantic` takes an embedder so it can be unit-tested with a stub and run for
 real with a sentence-transformer model.
 """
+
 from __future__ import annotations
 
 import re
@@ -40,7 +41,7 @@ def _split_sentences(text: str) -> list[str]:
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     na = sum(x * x for x in a) ** 0.5
     nb = sum(y * y for y in b) ** 0.5
     if na == 0 or nb == 0:
@@ -53,7 +54,11 @@ def fixed_chunks(text: str, size: int = 800, overlap: int = 100) -> list[str]:
     if size <= 0:
         raise ValueError("size must be positive")
     step = max(1, size - overlap)
-    return [text[i : i + size] for i in range(0, max(1, len(text)), step) if text[i : i + size].strip()]
+    return [
+        text[i : i + size]
+        for i in range(0, max(1, len(text)), step)
+        if text[i : i + size].strip()
+    ]
 
 
 def recursive_chunks(
@@ -164,11 +169,17 @@ def chunk_document(
             for idx, t in enumerate(texts):
                 chunks.append(Chunk(text=t, metadata={**base_meta, "chunk_index": idx}))
         elif strategy == "parent_child":
-            for idx, (child, parent) in enumerate(parent_child_chunks(page.text, **kwargs)):
+            for idx, (child, parent) in enumerate(
+                parent_child_chunks(page.text, **kwargs)
+            ):
                 chunks.append(
                     Chunk(
                         text=child,
-                        metadata={**base_meta, "chunk_index": idx, "parent_text": parent},
+                        metadata={
+                            **base_meta,
+                            "chunk_index": idx,
+                            "parent_text": parent,
+                        },
                     )
                 )
         else:

@@ -1,4 +1,5 @@
 """RAG chat: grounded cited answers, streaming, history, and feedback."""
+
 import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -37,13 +38,20 @@ router = APIRouter(tags=["chat"])
 async def _require_workspace(db, workspace_id, user):
     ws = await workspace_service.get_workspace(db, workspace_id, user.organization_id)
     if ws is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found"
+        )
     return ws
 
 
 def _citation_payload(citations):
     return [
-        {"index": c.index, "source": c.source, "page_number": c.page_number, "snippet": c.text[:200]}
+        {
+            "index": c.index,
+            "source": c.source,
+            "page_number": c.page_number,
+            "snippet": c.text[:200],
+        }
         for c in citations
     ]
 
@@ -63,9 +71,13 @@ async def chat(
 
     # Resolve or create the conversation this turn belongs to.
     if data.conversation_id:
-        conv = await chat_service.get_conversation(db, data.conversation_id, current.organization_id)
+        conv = await chat_service.get_conversation(
+            db, data.conversation_id, current.organization_id
+        )
         if conv is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
+            )
     else:
         conv = await chat_service.create_conversation(
             db, current.organization_id, workspace_id, title=data.query
@@ -74,7 +86,10 @@ async def chat(
     engine = RagEngine(HybridRetriever(store, embedder), reranker, generator)
     result = engine.answer(
         data.query,
-        where={"organization_id": current.organization_id, "workspace_id": workspace_id},
+        where={
+            "organization_id": current.organization_id,
+            "workspace_id": workspace_id,
+        },
     )
 
     citations = _citation_payload(result.citations)
@@ -109,36 +124,50 @@ async def chat_stream(
     engine = RagEngine(HybridRetriever(store, embedder), reranker, generator)
     citations, tokens = engine.stream(
         data.query,
-        where={"organization_id": current.organization_id, "workspace_id": workspace_id},
+        where={
+            "organization_id": current.organization_id,
+            "workspace_id": workspace_id,
+        },
     )
 
     def event_stream():
         for token in tokens:
             yield f"data: {json.dumps({'token': token})}\n\n"
-        yield f"data: {json.dumps({'done': True, 'citations': _citation_payload(citations)})}\n\n"
+        done = {"done": True, "citations": _citation_payload(citations)}
+        yield f"data: {json.dumps(done)}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
-@router.get("/workspaces/{workspace_id}/conversations", response_model=list[ConversationOut])
+@router.get(
+    "/workspaces/{workspace_id}/conversations", response_model=list[ConversationOut]
+)
 async def list_conversations(
     workspace_id: str,
     current: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     await _require_workspace(db, workspace_id, current)
-    return await chat_service.list_conversations(db, current.organization_id, workspace_id)
+    return await chat_service.list_conversations(
+        db, current.organization_id, workspace_id
+    )
 
 
-@router.get("/conversations/{conversation_id}/messages", response_model=list[MessageOut])
+@router.get(
+    "/conversations/{conversation_id}/messages", response_model=list[MessageOut]
+)
 async def list_messages(
     conversation_id: str,
     current: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    conv = await chat_service.get_conversation(db, conversation_id, current.organization_id)
+    conv = await chat_service.get_conversation(
+        db, conversation_id, current.organization_id
+    )
     if conv is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found"
+        )
     return await chat_service.list_messages(db, conversation_id)
 
 
@@ -151,5 +180,7 @@ async def submit_feedback(
 ):
     msg = await chat_service.get_message(db, message_id, current.organization_id)
     if msg is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Message not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Message not found"
+        )
     return await chat_service.set_feedback(db, msg, data.rating)

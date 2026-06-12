@@ -1,5 +1,6 @@
 """Orchestrates ingestion: parse -> clean -> chunk -> embed -> store in Qdrant,
 while persisting a Document row for tracking. Everything is tenant-scoped."""
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

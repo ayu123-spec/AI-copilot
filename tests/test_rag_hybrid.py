@@ -7,8 +7,8 @@ from app.vectorstore.qdrant_store import VectorStore
 def test_rrf_orders_by_combined_rank():
     fused = reciprocal_rank_fusion([["a", "b", "c"], ["a", "c", "d"]])
     order = [i for i, _ in fused]
-    assert order[0] == "a"          # ranked #1 in both lists
-    assert order[1] == "c"          # high in both, beats b and d
+    assert order[0] == "a"  # ranked #1 in both lists
+    assert order[1] == "c"  # high in both, beats b and d
 
 
 def _seed_store():
@@ -31,7 +31,9 @@ def _seed_store():
 def test_hybrid_retrieve_surfaces_keyword_match():
     store, emb = _seed_store()
     retriever = HybridRetriever(store, emb)
-    results = retriever.retrieve("python programming language", where={"workspace_id": "ws1"})
+    results = retriever.retrieve(
+        "python programming language", where={"workspace_id": "ws1"}
+    )
     assert results
     assert any("python" in r.text for r in results[:2])  # python doc near the top
 

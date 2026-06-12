@@ -58,5 +58,7 @@ def test_chunk_document_attaches_page_metadata():
 
 def test_parent_child_via_document_carries_parent_text():
     doc = ParsedDocument("d.txt", "text/plain", [ParsedPage(1, SAMPLE)])
-    chunks = chunk_document(doc, strategy="parent_child", parent_size=400, child_size=120)
+    chunks = chunk_document(
+        doc, strategy="parent_child", parent_size=400, child_size=120
+    )
     assert all("parent_text" in c.metadata for c in chunks)

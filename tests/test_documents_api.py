@@ -32,7 +32,9 @@ async def test_upload_and_list_document(client):
     assert body["status"] == "ready"
     assert body["num_chunks"] >= 1
 
-    listed = await client.get(f"/api/v1/workspaces/{ws}/documents", headers=ctx["headers"])
+    listed = await client.get(
+        f"/api/v1/workspaces/{ws}/documents", headers=ctx["headers"]
+    )
     assert listed.status_code == 200
     assert len(listed.json()) == 1
 
@@ -92,5 +94,7 @@ async def test_delete_document(client):
     res = await client.delete(f"/api/v1/documents/{doc_id}", headers=ctx["headers"])
     assert res.status_code == 204
 
-    listed = await client.get(f"/api/v1/workspaces/{ws}/documents", headers=ctx["headers"])
+    listed = await client.get(
+        f"/api/v1/workspaces/{ws}/documents", headers=ctx["headers"]
+    )
     assert listed.json() == []

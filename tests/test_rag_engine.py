@@ -6,10 +6,18 @@ from app.rag.rerank import FakeReranker
 
 def test_build_context_numbers_and_cites():
     chunks = [
-        RetrievedChunk(id="1", score=1.0, text="Revenue grew in the cloud.",
-                       metadata={"source": "q3.pdf", "page_number": 4}),
-        RetrievedChunk(id="2", score=0.5, text="Legal reviewed the contract.",
-                       metadata={"source": "legal.docx"}),
+        RetrievedChunk(
+            id="1",
+            score=1.0,
+            text="Revenue grew in the cloud.",
+            metadata={"source": "q3.pdf", "page_number": 4},
+        ),
+        RetrievedChunk(
+            id="2",
+            score=0.5,
+            text="Legal reviewed the contract.",
+            metadata={"source": "legal.docx"},
+        ),
     ]
     context, citations = build_context(chunks)
     assert "[1]" in context and "[2]" in context
@@ -27,8 +35,14 @@ class _StubRetriever:
 
 
 def test_engine_answers_with_citations():
-    chunks = [RetrievedChunk(id="1", score=1.0, text="The capital is Paris.",
-                             metadata={"source": "geo.txt", "page_number": 1})]
+    chunks = [
+        RetrievedChunk(
+            id="1",
+            score=1.0,
+            text="The capital is Paris.",
+            metadata={"source": "geo.txt", "page_number": 1},
+        )
+    ]
     engine = RagEngine(_StubRetriever(chunks), FakeReranker(), FakeGenerator())
     ans = engine.answer("What is the capital?", where={"workspace_id": "ws1"})
     assert ans.answer

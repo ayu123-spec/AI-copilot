@@ -4,6 +4,7 @@ Each parser preserves page/slide structure so downstream chunks can cite a page.
 Heavy/optional libraries are imported lazily inside each function so importing
 this module never fails if a format's dependency is absent.
 """
+
 from pathlib import Path
 
 from app.ingestion.base import ParsedDocument, ParsedPage
@@ -12,7 +13,9 @@ from app.ingestion.base import ParsedDocument, ParsedPage
 EXTENSION_CONTENT_TYPE = {
     ".pdf": "application/pdf",
     ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    ".pptx": (
+        "application/vnd.openxmlformats-officedocument." "presentationml.presentation"
+    ),
     ".txt": "text/plain",
     ".md": "text/markdown",
     ".markdown": "text/markdown",
@@ -76,7 +79,9 @@ def _parse_pptx(path: Path) -> ParsedDocument:
 def _parse_text(path: Path, content_type: str) -> ParsedDocument:
     text = path.read_text(encoding="utf-8", errors="replace")
     return ParsedDocument(
-        path.name, content_type, [ParsedPage(page_number=1, text=text)],
+        path.name,
+        content_type,
+        [ParsedPage(page_number=1, text=text)],
         {"source": path.name},
     )
 

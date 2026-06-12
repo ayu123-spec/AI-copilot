@@ -8,6 +8,7 @@ re-rank down to the few chunks the model actually sees (e.g. top 5).
 `cross_encoder` uses sentence-transformers (lazy-imported). `fake` is a
 dependency-free lexical re-ranker for offline use and tests.
 """
+
 import re
 from abc import ABC, abstractmethod
 from dataclasses import replace
@@ -24,8 +25,7 @@ class Reranker(ABC):
     @abstractmethod
     def rerank(
         self, query: str, chunks: list[RetrievedChunk], top_n: int = 5
-    ) -> list[RetrievedChunk]:
-        ...
+    ) -> list[RetrievedChunk]: ...
 
 
 class FakeReranker(Reranker):
@@ -55,7 +55,9 @@ class CrossEncoderReranker(Reranker):
         if not chunks:
             return []
         scores = self._model.predict([(query, c.text) for c in chunks])
-        ranked = sorted(zip(scores, chunks), key=lambda sc: sc[0], reverse=True)
+        ranked = sorted(
+            zip(scores, chunks, strict=False), key=lambda sc: sc[0], reverse=True
+        )
         return [replace(c, score=float(s)) for s, c in ranked[:top_n]]
 
 

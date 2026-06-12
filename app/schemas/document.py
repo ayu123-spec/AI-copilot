@@ -1,4 +1,5 @@
 """Pydantic schemas for documents and search."""
+
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field

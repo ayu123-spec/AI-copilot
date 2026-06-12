@@ -1,4 +1,5 @@
 """Persistence for chat history and feedback, scoped to the caller's org."""
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,7 +10,9 @@ async def create_conversation(
     db: AsyncSession, org_id: str, workspace_id: str, title: str
 ) -> Conversation:
     conv = Conversation(
-        organization_id=org_id, workspace_id=workspace_id, title=title[:255] or "New conversation"
+        organization_id=org_id,
+        workspace_id=workspace_id,
+        title=title[:255] or "New conversation",
     )
     db.add(conv)
     await db.flush()

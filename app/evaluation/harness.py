@@ -4,6 +4,7 @@ A chunk counts as 'relevant' to a case if it contains the case's expected
 substring (a simple, dependency-free relevance proxy). For answer-level metrics
 like faithfulness, see the optional RAGAS notes in the README.
 """
+
 from dataclasses import dataclass
 from statistics import mean
 
@@ -14,7 +15,9 @@ from app.rag.hybrid import HybridRetriever
 @dataclass
 class EvalCase:
     query: str
-    relevant_substring: str  # a result is relevant if it contains this (case-insensitive)
+    relevant_substring: (
+        str  # a result is relevant if it contains this (case-insensitive)
+    )
 
 
 def _relevances(results, relevant_substring: str) -> list[bool]:

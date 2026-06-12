@@ -1,4 +1,5 @@
 """Schemas for the RAG chat endpoint, history, and feedback."""
+
 from datetime import datetime
 from typing import Literal
 

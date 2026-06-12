@@ -65,7 +65,7 @@ async def test_invite_cross_tenant_blocked(client):
     await register_and_login(client, "b@orgb.com", org="Org B")
 
     ws = await client.post(
-        "/api/v1/workspaces", json={"name": "Team" }, headers=a["headers"]
+        "/api/v1/workspaces", json={"name": "Team"}, headers=a["headers"]
     )
     wid = ws.json()["id"]
     res = await client.post(

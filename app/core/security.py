@@ -1,5 +1,6 @@
 """Password hashing (bcrypt) and JWT token creation/verification."""
-from datetime import datetime, timedelta, timezone
+
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -24,7 +25,7 @@ def verify_password(password: str, hashed: str) -> bool:
 
 
 def _create_token(subject: str, token_type: str, expires_delta: timedelta) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": subject,
         "type": token_type,
@@ -48,6 +49,4 @@ def create_refresh_token(subject: str) -> str:
 
 def decode_token(token: str) -> dict:
     """Decode and validate a JWT. Raises jwt.PyJWTError on failure."""
-    return jwt.decode(
-        token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
-    )
+    return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])

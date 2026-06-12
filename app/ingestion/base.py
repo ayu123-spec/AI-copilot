@@ -1,4 +1,5 @@
 """Core data types shared across the ingestion pipeline."""
+
 from dataclasses import dataclass, field
 
 

@@ -18,7 +18,10 @@ def test_vector_store_upsert_and_search():
     store.ensure_collection(emb.dimension)
 
     texts = ["cats are mammals", "dogs are mammals", "python is a language"]
-    chunks = [Chunk(text=t, metadata={"document_id": "d1", "chunk_index": i}) for i, t in enumerate(texts)]
+    chunks = [
+        Chunk(text=t, metadata={"document_id": "d1", "chunk_index": i})
+        for i, t in enumerate(texts)
+    ]
     store.upsert_chunks(chunks, emb.embed(texts))
 
     results = store.search(emb.embed_query("python language"), limit=2)
@@ -36,7 +39,9 @@ def test_vector_store_metadata_filter_isolation():
     store.upsert_chunks(a, emb.embed([a[0].text]))
     store.upsert_chunks(b, emb.embed([b[0].text]))
 
-    only_a = store.search(emb.embed_query("doc text"), limit=10, where={"workspace_id": "wsA"})
+    only_a = store.search(
+        emb.embed_query("doc text"), limit=10, where={"workspace_id": "wsA"}
+    )
     assert only_a
     assert all(r.metadata.get("workspace_id") == "wsA" for r in only_a)
 
@@ -49,5 +54,7 @@ def test_vector_store_delete_by_document():
     store.upsert_chunks(chunks, emb.embed([chunks[0].text]))
 
     store.delete_by_document("doc-x")
-    results = store.search(emb.embed_query("deleted"), limit=10, where={"document_id": "doc-x"})
+    results = store.search(
+        emb.embed_query("deleted"), limit=10, where={"document_id": "doc-x"}
+    )
     assert results == []

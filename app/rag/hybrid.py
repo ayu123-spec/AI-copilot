@@ -4,6 +4,7 @@ Reciprocal Rank Fusion combines two ranked lists by position rather than raw
 score, so the two retrievers' incomparable scores don't need normalizing. A chunk
 ranked highly by *either* method, and especially by *both*, rises to the top.
 """
+
 from dataclasses import dataclass, field
 
 from app.embeddings.base import Embedder
@@ -45,7 +46,9 @@ class HybridRetriever:
         sparse_k: int = 20,
         limit: int = 10,
     ) -> list[RetrievedChunk]:
-        dense = self.store.search(self.embedder.embed_query(query), limit=dense_k, where=where)
+        dense = self.store.search(
+            self.embedder.embed_query(query), limit=dense_k, where=where
+        )
 
         corpus = self.store.fetch_all(where=where)
         bm25 = BM25Index(

@@ -1,4 +1,5 @@
 """Database engine, session factory and declarative base (async SQLAlchemy 2.0)."""
+
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (

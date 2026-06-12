@@ -1,4 +1,5 @@
 """Workspace endpoints, scoped to the caller's organization."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -55,7 +56,11 @@ async def invite_user(
         )
 
     membership = await workspace_service.add_member(db, workspace, invitee, data.role)
-    return {"workspace_id": workspace.id, "user_id": invitee.id, "role": membership.role}
+    return {
+        "workspace_id": workspace.id,
+        "user_id": invitee.id,
+        "role": membership.role,
+    }
 
 
 @router.patch("/{workspace_id}/settings", response_model=WorkspaceOut)

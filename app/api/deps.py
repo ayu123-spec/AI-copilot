@@ -1,4 +1,5 @@
 """Shared API dependencies: authentication and role-based authorization."""
+
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -24,7 +25,7 @@ async def get_current_user(
     try:
         payload = decode_token(creds.credentials)
     except jwt.PyJWTError:
-        raise _CREDENTIALS_ERROR
+        raise _CREDENTIALS_ERROR from None
     if payload.get("type") != "access":
         raise _CREDENTIALS_ERROR
     user_id = payload.get("sub")

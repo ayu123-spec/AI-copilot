@@ -1,5 +1,6 @@
 """The RAG engine: ties retrieval, re-ranking, citation building, and generation
 into a single grounded, cited answer."""
+
 from dataclasses import dataclass, field
 
 from app.rag.hybrid import HybridRetriever, RetrievedChunk
@@ -36,7 +37,9 @@ def build_context(chunks: list[RetrievedChunk]) -> tuple[str, list[Citation]]:
     for i, c in enumerate(chunks, start=1):
         source = c.metadata.get("source", "unknown")
         page = c.metadata.get("page_number")
-        citations.append(Citation(index=i, source=source, page_number=page, text=c.text))
+        citations.append(
+            Citation(index=i, source=source, page_number=page, text=c.text)
+        )
         loc = source + (f", p.{page}" if page else "")
         blocks.append(f"[{i}] (from {loc})\n{c.text}")
     return "\n\n".join(blocks), citations
@@ -66,7 +69,10 @@ class RagEngine:
         reranked = self._retrieve(query, where)
         if not reranked:
             return RagAnswer(
-                answer="I don't have enough information in the documents to answer that.",
+                answer=(
+                    "I don't have enough information in the documents "
+                    "to answer that."
+                ),
                 citations=[],
             )
         context, citations = build_context(reranked)

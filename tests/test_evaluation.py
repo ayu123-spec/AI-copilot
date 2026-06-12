@@ -24,7 +24,10 @@ def test_evaluate_retrieval_runs_and_scores():
         "b": "employees get twenty five vacation days",
         "c": "data is encrypted using strong cryptography",
     }
-    chunks = [Chunk(text=t, metadata={"source": k, "workspace_id": "w"}) for k, t in texts.items()]
+    chunks = [
+        Chunk(text=t, metadata={"source": k, "workspace_id": "w"})
+        for k, t in texts.items()
+    ]
     store.upsert_chunks(chunks, emb.embed(list(texts.values())))
 
     retriever = HybridRetriever(store, emb)

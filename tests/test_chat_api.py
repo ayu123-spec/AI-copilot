@@ -9,9 +9,24 @@ pytestmark = pytest.mark.asyncio
 
 async def test_chat_returns_answer_with_citations(client):
     ctx = await register_and_login(client, "admin@acme.com")
-    ws = (await client.post("/api/v1/workspaces", json={"name": "KB"}, headers=ctx["headers"])).json()["id"]
-    files = {"file": ("q3.txt", io.BytesIO(b"Revenue grew 20 percent in the third quarter driven by cloud services."), "text/plain")}
-    await client.post(f"/api/v1/workspaces/{ws}/documents", files=files, headers=ctx["headers"])
+    ws = (
+        await client.post(
+            "/api/v1/workspaces", json={"name": "KB"}, headers=ctx["headers"]
+        )
+    ).json()["id"]
+    files = {
+        "file": (
+            "q3.txt",
+            io.BytesIO(
+                b"Revenue grew 20 percent in the third quarter "
+                b"driven by cloud services."
+            ),
+            "text/plain",
+        )
+    }
+    await client.post(
+        f"/api/v1/workspaces/{ws}/documents", files=files, headers=ctx["headers"]
+    )
 
     res = await client.post(
         f"/api/v1/workspaces/{ws}/chat",
@@ -27,7 +42,11 @@ async def test_chat_returns_answer_with_citations(client):
 
 async def test_chat_with_no_documents_returns_no_citations(client):
     ctx = await register_and_login(client, "admin@acme.com")
-    ws = (await client.post("/api/v1/workspaces", json={"name": "Empty"}, headers=ctx["headers"])).json()["id"]
+    ws = (
+        await client.post(
+            "/api/v1/workspaces", json={"name": "Empty"}, headers=ctx["headers"]
+        )
+    ).json()["id"]
     res = await client.post(
         f"/api/v1/workspaces/{ws}/chat",
         json={"query": "anything at all"},

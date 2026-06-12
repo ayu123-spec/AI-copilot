@@ -1,4 +1,5 @@
 """Authentication endpoints."""
+
 import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,7 +29,9 @@ async def register(data: RegisterRequest, db: AsyncSession = Depends(get_db)):
     try:
         user = await auth_service.register_organization_admin(db, data)
     except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
     return user
 
 
@@ -52,7 +55,7 @@ async def refresh(data: RefreshRequest):
     except jwt.PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
-        )
+        ) from None
     if payload.get("type") != "refresh":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type"

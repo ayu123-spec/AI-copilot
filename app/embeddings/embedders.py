@@ -4,6 +4,7 @@
 module always imports cleanly. `fake` is dependency-free and deterministic,
 used by tests and for offline development.
 """
+
 import hashlib
 
 from app.core.config import settings

@@ -1,4 +1,5 @@
 """Document ingestion + search endpoints, scoped to org + workspace."""
+
 import os
 import tempfile
 
@@ -20,7 +21,9 @@ router = APIRouter(tags=["documents"])
 async def _require_workspace(db, workspace_id: str, user: User):
     ws = await workspace_service.get_workspace(db, workspace_id, user.organization_id)
     if ws is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Workspace not found"
+        )
     return ws
 
 
@@ -60,7 +63,9 @@ async def upload_document(
             store=store,
         )
     except UnsupportedFileType as exc:
-        raise HTTPException(status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(exc))
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail=str(exc)
+        ) from exc
     finally:
         os.unlink(tmp_path)
     return document
@@ -73,7 +78,9 @@ async def list_documents(
     db: AsyncSession = Depends(get_db),
 ):
     await _require_workspace(db, workspace_id, current)
-    return await ingestion_service.list_documents(db, current.organization_id, workspace_id)
+    return await ingestion_service.list_documents(
+        db, current.organization_id, workspace_id
+    )
 
 
 @router.post("/workspaces/{workspace_id}/search", response_model=list[SearchResultOut])

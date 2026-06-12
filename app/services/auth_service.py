@@ -1,4 +1,5 @@
 """Business logic for authentication and registration."""
+
 import secrets
 
 from sqlalchemy import select

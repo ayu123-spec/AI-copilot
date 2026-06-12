@@ -1,4 +1,5 @@
 """Structured-ish logging setup. Swap for JSON logs in production if desired."""
+
 import logging
 import sys
 

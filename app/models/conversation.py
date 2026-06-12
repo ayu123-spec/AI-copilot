@@ -1,9 +1,10 @@
 """Chat history: conversations and their messages (with optional feedback)."""
+
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, JSON, String, Text
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -14,7 +15,7 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class MessageRole(str, enum.Enum):
@@ -46,5 +47,7 @@ class Message(Base):
     role: Mapped[MessageRole] = mapped_column(Enum(MessageRole), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     citations: Mapped[list] = mapped_column(JSON, default=list)
-    feedback: Mapped[str | None] = mapped_column(String(8), nullable=True)  # "up"/"down"
+    feedback: Mapped[str | None] = mapped_column(
+        String(8), nullable=True
+    )  # "up"/"down"
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)

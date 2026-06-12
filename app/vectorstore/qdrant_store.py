@@ -8,6 +8,7 @@ Runs three ways depending on settings:
 `namespace` is implemented as a payload field plus a filter, giving per-workspace
 isolation inside a single collection.
 """
+
 from dataclasses import dataclass
 
 from qdrant_client import QdrantClient
@@ -55,8 +56,10 @@ class VectorStore:
 
     def upsert_chunks(self, chunks: list[Chunk], vectors: list[list[float]]) -> int:
         points = [
-            PointStruct(id=chunk.id, vector=vec, payload={**chunk.metadata, "text": chunk.text})
-            for chunk, vec in zip(chunks, vectors)
+            PointStruct(
+                id=chunk.id, vector=vec, payload={**chunk.metadata, "text": chunk.text}
+            )
+            for chunk, vec in zip(chunks, vectors, strict=False)
         ]
         if points:
             self.client.upsert(collection_name=self.collection, points=points)
@@ -67,7 +70,10 @@ class VectorStore:
         if not must:
             return None
         return Filter(
-            must=[FieldCondition(key=k, match=MatchValue(value=v)) for k, v in must.items()]
+            must=[
+                FieldCondition(key=k, match=MatchValue(value=v))
+                for k, v in must.items()
+            ]
         )
 
     def search(
@@ -86,10 +92,14 @@ class VectorStore:
         for h in hits:
             payload = dict(h.payload or {})
             text = payload.pop("text", "")
-            results.append(SearchResult(id=str(h.id), score=h.score, text=text, metadata=payload))
+            results.append(
+                SearchResult(id=str(h.id), score=h.score, text=text, metadata=payload)
+            )
         return results
 
-    def fetch_all(self, where: dict | None = None, batch: int = 256) -> list[SearchResult]:
+    def fetch_all(
+        self, where: dict | None = None, batch: int = 256
+    ) -> list[SearchResult]:
         """Page through every stored chunk matching `where`. Used to build the
         BM25 index for hybrid search, so it must carry the same tenant filter."""
         if not self.client.collection_exists(self.collection):
@@ -107,7 +117,9 @@ class VectorStore:
             for p in points:
                 payload = dict(p.payload or {})
                 text = payload.pop("text", "")
-                results.append(SearchResult(id=str(p.id), score=0.0, text=text, metadata=payload))
+                results.append(
+                    SearchResult(id=str(p.id), score=0.0, text=text, metadata=payload)
+                )
             if offset is None:
                 break
         return results

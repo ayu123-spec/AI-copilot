@@ -1,4 +1,5 @@
 """Test fixtures: isolated in-memory async DB and an httpx client."""
+
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (

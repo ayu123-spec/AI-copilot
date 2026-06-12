@@ -6,4 +6,10 @@ from app.embeddings.embedders import (
     get_embedder,
 )
 
-__all__ = ["Embedder", "FakeEmbedder", "LocalEmbedder", "OpenAIEmbedder", "get_embedder"]
+__all__ = [
+    "Embedder",
+    "FakeEmbedder",
+    "LocalEmbedder",
+    "OpenAIEmbedder",
+    "get_embedder",
+]

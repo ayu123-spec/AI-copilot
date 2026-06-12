@@ -1,4 +1,5 @@
 """Business logic for workspaces, scoped to the caller's organization."""
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

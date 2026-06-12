@@ -1,9 +1,10 @@
 """Workspace and workspace-membership models."""
+
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, JSON, String, UniqueConstraint
+from sqlalchemy import JSON, DateTime, Enum, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.config import settings
@@ -15,7 +16,7 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _default_settings() -> dict:

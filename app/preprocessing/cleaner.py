@@ -1,4 +1,5 @@
 """Text cleaning and light metadata extraction for parsed documents."""
+
 import re
 
 from app.ingestion.base import ParsedDocument, ParsedPage

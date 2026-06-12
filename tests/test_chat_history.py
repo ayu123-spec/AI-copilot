@@ -9,22 +9,38 @@ pytestmark = pytest.mark.asyncio
 
 async def _setup(client):
     ctx = await register_and_login(client, "admin@acme.com")
-    ws = (await client.post("/api/v1/workspaces", json={"name": "KB"}, headers=ctx["headers"])).json()["id"]
-    files = {"file": ("q3.txt", io.BytesIO(b"Revenue grew 20 percent in the third quarter."), "text/plain")}
-    await client.post(f"/api/v1/workspaces/{ws}/documents", files=files, headers=ctx["headers"])
+    ws = (
+        await client.post(
+            "/api/v1/workspaces", json={"name": "KB"}, headers=ctx["headers"]
+        )
+    ).json()["id"]
+    files = {
+        "file": (
+            "q3.txt",
+            io.BytesIO(b"Revenue grew 20 percent in the third quarter."),
+            "text/plain",
+        )
+    }
+    await client.post(
+        f"/api/v1/workspaces/{ws}/documents", files=files, headers=ctx["headers"]
+    )
     return ctx["headers"], ws
 
 
 async def test_chat_creates_conversation_and_saves_history(client):
     H, ws = await _setup(client)
-    res = await client.post(f"/api/v1/workspaces/{ws}/chat", json={"query": "How was revenue?"}, headers=H)
+    res = await client.post(
+        f"/api/v1/workspaces/{ws}/chat", json={"query": "How was revenue?"}, headers=H
+    )
     body = res.json()
     assert body["conversation_id"] and body["message_id"]
 
     convs = await client.get(f"/api/v1/workspaces/{ws}/conversations", headers=H)
     assert len(convs.json()) == 1
 
-    msgs = await client.get(f"/api/v1/conversations/{body['conversation_id']}/messages", headers=H)
+    msgs = await client.get(
+        f"/api/v1/conversations/{body['conversation_id']}/messages", headers=H
+    )
     roles = [m["role"] for m in msgs.json()]
     assert roles == ["user", "assistant"]
     assert msgs.json()[1]["citations"]  # assistant message carries citations
@@ -32,7 +48,11 @@ async def test_chat_creates_conversation_and_saves_history(client):
 
 async def test_chat_continues_existing_conversation(client):
     H, ws = await _setup(client)
-    first = (await client.post(f"/api/v1/workspaces/{ws}/chat", json={"query": "Q1?"}, headers=H)).json()
+    first = (
+        await client.post(
+            f"/api/v1/workspaces/{ws}/chat", json={"query": "Q1?"}, headers=H
+        )
+    ).json()
     conv_id = first["conversation_id"]
     await client.post(
         f"/api/v1/workspaces/{ws}/chat",
@@ -45,7 +65,11 @@ async def test_chat_continues_existing_conversation(client):
 
 async def test_feedback_records_on_message(client):
     H, ws = await _setup(client)
-    chat = (await client.post(f"/api/v1/workspaces/{ws}/chat", json={"query": "hi"}, headers=H)).json()
+    chat = (
+        await client.post(
+            f"/api/v1/workspaces/{ws}/chat", json={"query": "hi"}, headers=H
+        )
+    ).json()
     res = await client.post(
         f"/api/v1/messages/{chat['message_id']}/feedback",
         json={"rating": "up"},

@@ -1,7 +1,8 @@
 """Document model: tracks an ingested file. Chunk vectors live in Qdrant."""
+
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -14,7 +15,7 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class DocumentStatus(str, enum.Enum):
