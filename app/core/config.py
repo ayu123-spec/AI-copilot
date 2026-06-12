@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     LLM_MODEL: str = ""  # blank = use the backend's default model
     ANTHROPIC_API_KEY: str | None = None
 
+    # Read-only analytics database for the SQL agent (separate from the app DB).
+    ANALYTICS_DATABASE_URL: str = "sqlite:///./analytics.db"
+    SQL_AGENT_MAX_ROWS: int = 100
+
     LOG_LEVEL: str = "INFO"
 
 

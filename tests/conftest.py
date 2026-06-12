@@ -1,5 +1,7 @@
 """Test fixtures: isolated in-memory async DB and an httpx client."""
 
+import warnings
+
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
@@ -11,6 +13,14 @@ from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base, get_db
 from app.main import app  # importing main also registers all model tables
+
+# Silence a harmless import-time PendingDeprecationWarning from langgraph's
+# checkpoint serde so test output stays clean (registered before any test
+# module imports langgraph).
+warnings.filterwarnings(
+    "ignore",
+    message="The default value of `allowed_objects` will change",
+)
 
 
 @pytest_asyncio.fixture

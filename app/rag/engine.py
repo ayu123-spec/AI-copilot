@@ -61,9 +61,18 @@ class RagEngine:
         self.candidate_k = candidate_k
         self.top_n = top_n
 
-    def _retrieve(self, query: str, where: dict | None):
+    def search(
+        self, query: str, *, where: dict | None = None, top_n: int | None = None
+    ) -> list[RetrievedChunk]:
+        """Retrieve and re-rank evidence for a query *without* generating an
+        answer. Lets agents gather evidence across several queries before
+        synthesising once."""
         candidates = self.retriever.retrieve(query, where=where, limit=self.candidate_k)
-        return self.reranker.rerank(query, candidates, top_n=self.top_n)
+        n = self.top_n if top_n is None else top_n
+        return self.reranker.rerank(query, candidates, top_n=n)
+
+    def _retrieve(self, query: str, where: dict | None):
+        return self.search(query, where=where)
 
     def answer(self, query: str, *, where: dict | None = None) -> RagAnswer:
         reranked = self._retrieve(query, where)
