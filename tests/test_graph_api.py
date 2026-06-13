@@ -118,3 +118,14 @@ async def test_relationship_query_routes_to_graph_agent(client):
     assert body["agent"] == "graph"
     assert body["answer"]
     assert body["metadata"]["graph_facts"]
+
+
+async def test_get_full_graph(client):
+    ctx = await register_and_login(client, "admin@acme.com")
+    ws = await _new_workspace(client, ctx["headers"])
+    await _build(client, ctx["headers"], ws)
+    res = await client.get(f"/api/v1/workspaces/{ws}/graph", headers=ctx["headers"])
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert len(body["entities"]) > 0
+    assert len(body["facts"]) >= 3

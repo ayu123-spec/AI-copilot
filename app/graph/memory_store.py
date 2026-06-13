@@ -152,3 +152,18 @@ class InMemoryGraphStore(GraphStore):
     def clear(self, *, organization_id: str, workspace_id: str) -> None:
         self._entities.pop((organization_id, workspace_id), None)
         self._edges.pop((organization_id, workspace_id), None)
+
+    def export_graph(
+        self, *, organization_id: str, workspace_id: str
+    ) -> tuple[list[StoredEntity], list[GraphFact]]:
+        store = self._ents(organization_id, workspace_id)
+        entities = list(store.values())
+        facts = [
+            GraphFact(
+                source=store[src].name if src in store else src,
+                relation=rel,
+                target=store[tgt].name if tgt in store else tgt,
+            )
+            for src, rel, tgt in self._rels(organization_id, workspace_id)
+        ]
+        return entities, facts

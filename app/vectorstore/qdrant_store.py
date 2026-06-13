@@ -33,6 +33,21 @@ class SearchResult:
     metadata: dict
 
 
+# Embedded Qdrant locks its storage folder to a single client per process, and a
+# server connection is cheaper shared too. We therefore reuse one client per
+# connection target (path or URL) across every VectorStore (documents, memory,
+# ...). ``:memory:`` clients are intentionally NOT shared so each stays isolated.
+_CLIENTS: dict[str, QdrantClient] = {}
+
+
+def _shared_client(key: str, factory) -> QdrantClient:
+    client = _CLIENTS.get(key)
+    if client is None:
+        client = factory()
+        _CLIENTS[key] = client
+    return client
+
+
 class VectorStore:
     def __init__(
         self,
@@ -43,9 +58,15 @@ class VectorStore:
         if location == ":memory:":
             self.client = QdrantClient(location=":memory:")
         elif settings.QDRANT_URL:
-            self.client = QdrantClient(url=settings.QDRANT_URL)
+            self.client = _shared_client(
+                f"url:{settings.QDRANT_URL}",
+                lambda: QdrantClient(url=settings.QDRANT_URL),
+            )
         else:
-            self.client = QdrantClient(path=settings.QDRANT_PATH)
+            self.client = _shared_client(
+                f"path:{settings.QDRANT_PATH}",
+                lambda: QdrantClient(path=settings.QDRANT_PATH),
+            )
 
     def ensure_collection(self, dim: int) -> None:
         if not self.client.collection_exists(self.collection):

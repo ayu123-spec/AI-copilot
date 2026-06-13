@@ -62,3 +62,14 @@ def test_clear(store):
     )
     store.clear(organization_id="o", workspace_id="w")
     assert store.get_entity("Acme", organization_id="o", workspace_id="w") is None
+
+
+def test_export_graph(store):
+    store.add_relationships(
+        [Relationship("Alice", "Acme", "WORKS_FOR", "Person", "Company")],
+        organization_id="o",
+        workspace_id="w",
+    )
+    entities, facts = store.export_graph(organization_id="o", workspace_id="w")
+    assert {"Alice", "Acme"} <= {e.name for e in entities}
+    assert "Alice —WORKS_FOR→ Acme" in {f.as_text() for f in facts}

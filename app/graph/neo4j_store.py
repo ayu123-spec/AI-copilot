@@ -226,3 +226,34 @@ class Neo4jGraphStore(GraphStore):  # pragma: no cover - requires a live server
                 org=organization_id,
                 ws=workspace_id,
             )
+
+    def export_graph(
+        self, *, organization_id: str, workspace_id: str
+    ) -> tuple[list[StoredEntity], list[GraphFact]]:
+        with self._driver.session() as session:
+            ent_rows = session.run(
+                """
+                MATCH (e:Entity)
+                WHERE e.organization_id = $org AND e.workspace_id = $ws
+                RETURN e.id AS id, e.name AS name, e.type AS type
+                """,
+                org=organization_id,
+                ws=workspace_id,
+            ).data()
+            fact_rows = session.run(
+                """
+                MATCH (s:Entity)-[rel:REL]->(t:Entity)
+                WHERE s.organization_id = $org AND s.workspace_id = $ws
+                RETURN s.name AS source, rel.type AS relation, t.name AS target
+                """,
+                org=organization_id,
+                ws=workspace_id,
+            ).data()
+        entities = [
+            StoredEntity(id=r["id"], name=r["name"], type=r["type"]) for r in ent_rows
+        ]
+        facts = [
+            GraphFact(source=r["source"], relation=r["relation"], target=r["target"])
+            for r in fact_rows
+        ]
+        return entities, facts

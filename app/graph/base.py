@@ -119,5 +119,12 @@ class GraphStore(ABC):
         """Relationships reachable from an entity within ``depth`` hops."""
 
     @abstractmethod
+    def export_graph(
+        self, *, organization_id: str, workspace_id: str
+    ) -> tuple[list[StoredEntity], list[GraphFact]]:
+        """Return the whole workspace graph: all entities and all relationships
+        (as facts). Powers full-graph visualisation."""
+
+    @abstractmethod
     def clear(self, *, organization_id: str, workspace_id: str) -> None:
         """Remove all of a workspace's entities and relationships."""

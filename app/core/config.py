@@ -64,6 +64,13 @@ class Settings(BaseSettings):
     GRAPH_ENTITY_EXTRACTOR: str = "rule"
     GRAPH_MAX_HOPS: int = 2
 
+    # CORS: origins allowed to call the API from a browser (the React dev app).
+    CORS_ORIGINS: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+    ]
+
     LOG_LEVEL: str = "INFO"
 
 

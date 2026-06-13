@@ -48,6 +48,24 @@ def _facts_out(facts) -> list[GraphFactOut]:
     ]
 
 
+@router.get("/workspaces/{workspace_id}/graph", response_model=GraphQueryResponse)
+async def get_graph(
+    workspace_id: str,
+    current: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    graph_store: GraphStore = Depends(get_graph_store),
+):
+    """The whole workspace graph (all entities + relationships) for visualisation."""
+    await _require_workspace(db, workspace_id, current)
+    entities, facts = graph_store.export_graph(
+        organization_id=current.organization_id, workspace_id=workspace_id
+    )
+    return GraphQueryResponse(
+        entities=[EntityOut(id=e.id, name=e.name, type=e.type) for e in entities],
+        facts=_facts_out(facts),
+    )
+
+
 @router.post(
     "/workspaces/{workspace_id}/graph/build", response_model=GraphBuildResponse
 )
