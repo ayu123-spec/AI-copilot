@@ -1,4 +1,4 @@
-# Enterprise AI Knowledge Copilot — Phases 0–1
+# Enterprise AI Knowledge Copilot — Phases 0–3
 
 **v0.1** is the foundation (auth, multi-tenant users, workspaces, infra).
 **v0.2** adds the ingestion engine: upload documents, parse + clean + chunk + embed
@@ -45,6 +45,36 @@ with no server.
 **Pipeline + API** — `upload → parse → clean → chunk → embed → store`, exposed as
 tenant-scoped endpoints. Search is always filtered to the caller's org + workspace.
 
+## What's implemented — Phase 3 (Agents & orchestration, v0.4)
+
+**Research agent** — wraps the RAG engine as a reusable `rag_search` tool, gathers
+evidence (optionally across several refinement hops, de-duplicated by chunk), and
+synthesises one cited answer. Tenant-scoped, and able to draw on long-term memory.
+
+**SQL agent** — answers quantitative questions over a seeded analytics database
+(`regions`, `products`, `sales`) by writing read-only SQL. Guardrails are defence in
+depth: every connection runs `PRAGMA query_only = ON` (writes rejected by the driver),
+*and* a `sqlparse`-based guard independently enforces a single read-only `SELECT` over
+allow-listed tables, with a `LIMIT` injected. Rejected queries are revised and retried;
+the generated SQL is always returned for transparency.
+
+**Orchestrator (LangGraph)** — a compiled `StateGraph` classifies each query and routes
+it to the right agent, then records which agent handled it. Routing is pluggable: a
+deterministic keyword router (the default, fully offline) or an LLM router.
+
+**Memory** — two tenant-scoped layers. *Short-term* is the recent turns of the current
+conversation; *long-term* is durable `MemoryItem` records embedded into a Qdrant memory
+collection for semantic recall across conversations. Both are assembled into the agent's
+context for each run.
+
+**Persistence & API** — every run is saved as an inspectable `AgentRunRecord` (chosen
+agent, answer, citations, full step trace). Endpoints run the orchestrator (or a forced
+agent), list/fetch run traces, and add/list/recall memories. Runs optionally persist to
+the chat history as a conversation.
+
+**Routing evaluation** — `app/evaluation/agent_eval.py` measures routing accuracy on a
+small labelled query set.
+
 ## Run it
 
 ```bash
@@ -66,7 +96,7 @@ To try ingestion locally without downloading a model, set `EMBEDDING_BACKEND=fak
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q          # 11 tests: auth flows + multi-tenant isolation
+pytest -q          # 120 tests: auth, ingestion, RAG, agents, memory + tenant isolation
 ```
 
 ## API surface (prefix `/api/v1`)
@@ -92,13 +122,19 @@ pytest -q          # 11 tests: auth flows + multi-tenant isolation
 | GET    | `/workspaces/{id}/conversations`  | any           | List chat conversations       |
 | GET    | `/conversations/{id}/messages`    | any           | Conversation message history  |
 | POST   | `/messages/{id}/feedback`         | any           | 👍/👎 on an assistant message  |
+| POST   | `/workspaces/{id}/agents/run`     | any           | Run orchestrator / forced agent|
+| GET    | `/workspaces/{id}/agents/runs`    | any           | List persisted run traces     |
+| GET    | `/agents/runs/{id}`               | any           | Fetch one run trace           |
+| POST   | `/workspaces/{id}/memories`       | any           | Add a long-term memory        |
+| GET    | `/workspaces/{id}/memories`       | any           | List long-term memories       |
+| POST   | `/workspaces/{id}/memories/recall`| any           | Semantic memory recall        |
 
 ## Known simplifications (intentional for Phase 0)
 
 - Email verification logs the token instead of sending mail — swap in an email
   provider when convenient.
-- Tables are created on startup (`create_all`). Before Phase 1, add Alembic
-  migrations so schema changes are versioned.
+- Tables are created on startup (`create_all`) for convenience, but **Alembic
+  migrations are included** — run `alembic upgrade head` for versioned schema changes.
 - `JWT_SECRET` defaults to a placeholder; set a real one via `.env` everywhere.
 
 ## Evaluation
@@ -121,7 +157,13 @@ be layered on top with an LLM judge.
 | MRR           | TBD   |
 | Precision@k   | TBD   |
 
-## Next: Phase 3
+## Running the agents
 
-Agents and orchestration: a LangGraph workflow with a research agent and a SQL agent,
-plus long-term memory. See `BUILD_PLAN.md`.
+The agents and routing run fully offline with `EMBEDDING_BACKEND=fake` and the default
+`fake` LLM backend (the SQL agent will decline rather than invent SQL). For real answers
+and LLM-driven routing, set `LLM_BACKEND=anthropic`, provide `ANTHROPIC_API_KEY`, and
+`pip install anthropic`; for real semantic memory recall, use `EMBEDDING_BACKEND=local`.
+
+## Next: Phase 4
+
+Production hardening and evaluation depth. See `BUILD_PLAN.md`.

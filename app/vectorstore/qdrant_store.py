@@ -65,6 +65,22 @@ class VectorStore:
             self.client.upsert(collection_name=self.collection, points=points)
         return len(points)
 
+    def upsert_records(
+        self,
+        records: list[tuple[str, str, dict]],
+        vectors: list[list[float]],
+    ) -> int:
+        """Upsert arbitrary ``(id, text, metadata)`` records — used for long-term
+        memories. Mirrors :meth:`upsert_chunks` without depending on the chunking
+        layer; the id lets a record be updated or deleted later."""
+        points = [
+            PointStruct(id=rec_id, vector=vec, payload={**meta, "text": text})
+            for (rec_id, text, meta), vec in zip(records, vectors, strict=False)
+        ]
+        if points:
+            self.client.upsert(collection_name=self.collection, points=points)
+        return len(points)
+
     @staticmethod
     def _filter(must: dict | None) -> Filter | None:
         if not must:

@@ -98,7 +98,9 @@ class Orchestrator:
         agent = self._registry.get(name)
 
         def _node(state: OrchestratorState) -> dict[str, Any]:
-            return {"run": agent.run(state["query"], state.get("context"))}
+            run = agent.run(state["query"], state.get("context"))
+            run.metadata.setdefault("agent", name)  # record who handled it
+            return {"run": run, "route": name}
 
         return _node
 

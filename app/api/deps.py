@@ -96,3 +96,34 @@ def get_generator():
 
         _generator = _get()
     return _generator
+
+
+_memory_store = None
+
+
+def get_memory_store():
+    """Long-term memory vector store (singleton). Overridden in tests with an
+    in-memory store."""
+    global _memory_store
+    if _memory_store is None:
+        from app.core.config import settings
+        from app.vectorstore.qdrant_store import VectorStore
+
+        _memory_store = VectorStore(collection=settings.MEMORY_COLLECTION)
+    return _memory_store
+
+
+_analytics_engine = None
+
+
+def get_analytics_engine():
+    """Read-only analytics engine for the SQL agent (singleton). Ensures the
+    sample database exists and is seeded. Overridden in tests."""
+    global _analytics_engine
+    if _analytics_engine is None:
+        from app.agents.sql import create_analytics_database, read_only_engine
+        from app.core.config import settings
+
+        create_analytics_database(settings.ANALYTICS_DATABASE_URL)
+        _analytics_engine = read_only_engine(settings.ANALYTICS_DATABASE_URL)
+    return _analytics_engine

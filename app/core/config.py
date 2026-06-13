@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     ANALYTICS_DATABASE_URL: str = "sqlite:///./analytics.db"
     SQL_AGENT_MAX_ROWS: int = 100
 
+    # Agent memory: long-term semantic recall (Qdrant) + short-term history.
+    MEMORY_COLLECTION: str = "memory"
+    MEMORY_RECALL_LIMIT: int = 5
+    MEMORY_HISTORY_LIMIT: int = 10
+
     LOG_LEVEL: str = "INFO"
 
 

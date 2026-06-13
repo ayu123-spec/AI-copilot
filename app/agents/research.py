@@ -28,6 +28,19 @@ def _format_evidence(chunks: list[RetrievedChunk]) -> str:
     return "\n".join(lines)
 
 
+def _context_preamble(memories: list[str], history: list[dict[str, str]]) -> str:
+    """Render recalled long-term memories and recent conversation turns as a
+    prompt preamble. Empty when there is nothing to add."""
+    parts: list[str] = []
+    if memories:
+        remembered = "\n".join(f"- {m}" for m in memories)
+        parts.append(f"Relevant remembered context:\n{remembered}")
+    if history:
+        turns = "\n".join(f"{h['role']}: {h['content']}" for h in history)
+        parts.append(f"Recent conversation:\n{turns}")
+    return ("\n\n".join(parts) + "\n\n") if parts else ""
+
+
 class RagSearchTool(Tool):
     """Retrieve the most relevant passages from the workspace's documents."""
 
@@ -96,23 +109,30 @@ class ResearchAgent(Agent):
                     seen.add(c.id)
                     evidence.append(c)
 
-        if not evidence:
+        memories = list(context.memories) if context else []
+        history = list(context.history) if context else []
+
+        if not evidence and not memories:
             return AgentRun(
                 query=query,
                 answer=(
                     "I don't have enough information in the documents "
-                    "to answer that."
+                    "or memory to answer that."
                 ),
                 steps=steps,
             )
 
         context_block, citations = build_context(evidence)
-        user_prompt = f"Sources:\n{context_block}\n\nQuestion: {query}"
+        user_prompt = _context_preamble(memories, history)
+        user_prompt += f"Sources:\n{context_block}\n\nQuestion: {query}"
         answer = self._generator.generate(SYSTEM_PROMPT, user_prompt)
         steps.append(
             AgentStep(
-                thought="Synthesise a grounded answer from the gathered evidence.",
-                observation=f"Answer drafted from {len(citations)} source(s).",
+                thought="Synthesise a grounded answer from evidence and memory.",
+                observation=(
+                    f"Answer drafted from {len(citations)} source(s) "
+                    f"and {len(memories)} memory item(s)."
+                ),
             )
         )
         return AgentRun(query=query, answer=answer, steps=steps, citations=citations)

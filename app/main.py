@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 # Import models so their tables are registered on Base.metadata.
 import app.models  # noqa: F401
-from app.api.routers import auth, chat, documents, users, workspaces
+from app.api.routers import agents, auth, chat, documents, users, workspaces
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
 from app.db.base import Base, engine
@@ -27,7 +27,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
-for r in (auth.router, users.router, workspaces.router, documents.router, chat.router):
+for r in (
+    auth.router,
+    users.router,
+    workspaces.router,
+    documents.router,
+    chat.router,
+    agents.router,
+):
     app.include_router(r, prefix=settings.API_V1_PREFIX)
 
 
