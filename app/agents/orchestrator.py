@@ -30,11 +30,21 @@ _SQL_WORDS = {
 }  # fmt: skip
 _SQL_PHRASES = ("how many", "number of", "per region", "per product", "per quarter")
 
+# Relationship / org-structure / multi-hop signals route to the graph agent.
+_GRAPH_PHRASES = (
+    "reports to", "report to", "report into", "reporting to", "manager of",
+    "who manages", "managed by", "works for", "work for", "works on",
+    "part of", "org chart", "organization chart", "organisation chart",
+    "relationship between", "related to", "connected to", "who does",
+)  # fmt: skip
+
 
 def keyword_router(query: str) -> str:
-    """Deterministic default: quantitative/tabular questions route to ``sql``,
-    everything else to ``research``."""
+    """Deterministic default: relationship questions route to ``graph``,
+    quantitative/tabular questions to ``sql``, everything else to ``research``."""
     q = query.lower()
+    if any(phrase in q for phrase in _GRAPH_PHRASES):
+        return "graph"
     words = set(re.findall(r"[a-z]+", q))
     if words & _SQL_WORDS or any(phrase in q for phrase in _SQL_PHRASES):
         return "sql"

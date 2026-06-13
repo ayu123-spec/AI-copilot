@@ -20,3 +20,5 @@ alembic==1.14.0
 # Phase 3: agents — SQL guard + orchestration
 sqlparse==0.5.3
 langgraph==0.2.60
+# Phase 4: knowledge graph (lazy-imported; only needed for GRAPH_BACKEND=neo4j)
+neo4j==5.27.0

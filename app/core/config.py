@@ -55,6 +55,15 @@ class Settings(BaseSettings):
     MEMORY_RECALL_LIMIT: int = 5
     MEMORY_HISTORY_LIMIT: int = 10
 
+    # Knowledge graph (Phase 4). Backend "memory" (in-process; default + tests)
+    # or "neo4j" (real server). Entity extractor "rule" (offline) or "llm".
+    GRAPH_BACKEND: str = "memory"
+    NEO4J_URI: str = "bolt://localhost:7687"
+    NEO4J_USER: str = "neo4j"
+    NEO4J_PASSWORD: str | None = None
+    GRAPH_ENTITY_EXTRACTOR: str = "rule"
+    GRAPH_MAX_HOPS: int = 2
+
     LOG_LEVEL: str = "INFO"
 
 

@@ -127,3 +127,18 @@ def get_analytics_engine():
         create_analytics_database(settings.ANALYTICS_DATABASE_URL)
         _analytics_engine = read_only_engine(settings.ANALYTICS_DATABASE_URL)
     return _analytics_engine
+
+
+def get_graph_store():
+    """Knowledge-graph store (process-wide singleton). Overridden in tests with
+    a fresh in-memory store per client."""
+    from app.graph.factory import get_graph_store as _get
+
+    return _get()
+
+
+def get_entity_extractor():
+    """Entity extractor chosen by settings (rule-based by default)."""
+    from app.graph.factory import get_entity_extractor as _get
+
+    return _get()

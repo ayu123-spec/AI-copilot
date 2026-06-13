@@ -50,11 +50,13 @@ async def client():
         get_analytics_engine,
         get_embedder,
         get_generator,
+        get_graph_store,
         get_memory_store,
         get_reranker,
         get_vector_store,
     )
     from app.embeddings.embedders import FakeEmbedder
+    from app.graph.memory_store import InMemoryGraphStore
     from app.rag.llm import FakeGenerator
     from app.rag.rerank import FakeReranker
     from app.vectorstore.qdrant_store import VectorStore
@@ -62,6 +64,7 @@ async def client():
     fake_embedder = FakeEmbedder(dim=384)
     docs_store = VectorStore(collection="test_docs", location=":memory:")
     mem_store = VectorStore(collection="test_memory", location=":memory:")
+    graph_store = InMemoryGraphStore()
 
     analytics_dir = tempfile.mkdtemp()
     analytics_url = f"sqlite:///{analytics_dir}/analytics.db"
@@ -72,6 +75,7 @@ async def client():
     app.dependency_overrides[get_embedder] = lambda: fake_embedder
     app.dependency_overrides[get_vector_store] = lambda: docs_store
     app.dependency_overrides[get_memory_store] = lambda: mem_store
+    app.dependency_overrides[get_graph_store] = lambda: graph_store
     app.dependency_overrides[get_analytics_engine] = lambda: analytics_engine
     app.dependency_overrides[get_reranker] = lambda: FakeReranker()
     app.dependency_overrides[get_generator] = lambda: FakeGenerator()

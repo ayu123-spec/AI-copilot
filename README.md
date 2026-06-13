@@ -1,4 +1,4 @@
-# Enterprise AI Knowledge Copilot — Phases 0–3
+# Enterprise AI Knowledge Copilot — Phases 0–4 (Knowledge Graph, partial)
 
 **v0.1** is the foundation (auth, multi-tenant users, workspaces, infra).
 **v0.2** adds the ingestion engine: upload documents, parse + clean + chunk + embed
@@ -75,6 +75,27 @@ the chat history as a conversation.
 **Routing evaluation** — `app/evaluation/agent_eval.py` measures routing accuracy on a
 small labelled query set.
 
+## What's implemented — Phase 4 (Knowledge graph & GraphRAG, v0.5 — partial)
+
+**Knowledge graph** — a tenant-scoped property graph of entities (Person, Company,
+Project, Department) and relationships (`WORKS_FOR`, `MANAGES`, `REPORTS_TO`, `PART_OF`,
+`WORKS_ON`) extracted from documents. The `GraphStore` interface has two backends: an
+in-process store (default, offline, used by tests and local dev) and a **Neo4j** store
+for production (`GRAPH_BACKEND=neo4j`, driver lazy-imported). Entity ids are deterministic
+so the same entity merges across documents.
+
+**Entity extraction** — pluggable behind one interface: a deterministic, offline
+`RuleBasedEntityExtractor` (proper-noun + relationship-verb patterns with suffix/keyword
+typing) by default, and an opt-in `LLMEntityExtractor` (`GRAPH_ENTITY_EXTRACTOR=llm`).
+
+**GraphRAG** — `GraphRetriever` spots the entities a query mentions, traverses their
+relationships up to `GRAPH_MAX_HOPS` hops, and returns the facts. A new **graph agent**
+joins the orchestrator (relationship/multi-hop questions route to it) and fuses those
+graph facts with vector-retrieved passages — answering multi-hop questions that pure
+vector search cannot, while still citing documents.
+
+> Remaining for v0.5: Module 14 (Multimodal RAG). Tagged once that lands.
+
 ## Run it
 
 ```bash
@@ -96,7 +117,7 @@ To try ingestion locally without downloading a model, set `EMBEDDING_BACKEND=fak
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q          # 120 tests: auth, ingestion, RAG, agents, memory + tenant isolation
+pytest -q          # 140 tests: auth, ingestion, RAG, agents, memory + tenant isolation
 ```
 
 ## API surface (prefix `/api/v1`)
@@ -128,6 +149,10 @@ pytest -q          # 120 tests: auth, ingestion, RAG, agents, memory + tenant is
 | POST   | `/workspaces/{id}/memories`       | any           | Add a long-term memory        |
 | GET    | `/workspaces/{id}/memories`       | any           | List long-term memories       |
 | POST   | `/workspaces/{id}/memories/recall`| any           | Semantic memory recall        |
+| POST   | `/workspaces/{id}/graph/build`    | any           | Build the KG from documents   |
+| GET    | `/workspaces/{id}/graph/entities` | any           | Search graph entities         |
+| GET    | `/workspaces/{id}/graph/entities/{name}/neighbors` | any | Traverse an entity's relations |
+| POST   | `/workspaces/{id}/graph/query`    | any           | GraphRAG retrieval (facts)    |
 
 ## Known simplifications (intentional for Phase 0)
 
@@ -164,6 +189,11 @@ The agents and routing run fully offline with `EMBEDDING_BACKEND=fake` and the d
 and LLM-driven routing, set `LLM_BACKEND=anthropic`, provide `ANTHROPIC_API_KEY`, and
 `pip install anthropic`; for real semantic memory recall, use `EMBEDDING_BACKEND=local`.
 
-## Next: Phase 4
+The knowledge graph defaults to an in-process store (no server). For a real graph, set
+`GRAPH_BACKEND=neo4j` with `NEO4J_URI` / `NEO4J_USER` / `NEO4J_PASSWORD` (the `neo4j`
+driver is already in `requirements.txt`), and optionally `GRAPH_ENTITY_EXTRACTOR=llm`.
 
-Production hardening and evaluation depth. See `BUILD_PLAN.md`.
+## Next: finish Phase 4, then Phase 5
+
+Module 14 (Multimodal RAG) completes Phase 4 and the **v0.5** tag. After that, Phase 5
+adds the evaluation framework, guardrails, and an analytics dashboard. See `BUILD_PLAN.md`.

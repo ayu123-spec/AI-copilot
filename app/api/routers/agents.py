@@ -14,6 +14,7 @@ from app.api.deps import (
     get_current_user,
     get_embedder,
     get_generator,
+    get_graph_store,
     get_memory_store,
     get_reranker,
     get_vector_store,
@@ -76,6 +77,7 @@ async def run_agent(
     reranker: Reranker = Depends(get_reranker),
     generator: Generator = Depends(get_generator),
     analytics_engine: Engine = Depends(get_analytics_engine),
+    graph_store=Depends(get_graph_store),
 ):
     await _require_workspace(db, workspace_id, current)
 
@@ -116,7 +118,9 @@ async def run_agent(
         reranker=reranker,
         generator=generator,
         analytics_engine=analytics_engine,
+        graph_store=graph_store,
         max_rows=settings.SQL_AGENT_MAX_ROWS,
+        max_hops=settings.GRAPH_MAX_HOPS,
     )
 
     if data.agent:

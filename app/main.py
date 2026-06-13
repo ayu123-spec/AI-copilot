@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 # Import models so their tables are registered on Base.metadata.
 import app.models  # noqa: F401
-from app.api.routers import agents, auth, chat, documents, users, workspaces
+from app.api.routers import agents, auth, chat, documents, graph, users, workspaces
 from app.core.config import settings
 from app.core.logging import configure_logging, get_logger
 from app.db.base import Base, engine
@@ -34,6 +34,7 @@ for r in (
     documents.router,
     chat.router,
     agents.router,
+    graph.router,
 ):
     app.include_router(r, prefix=settings.API_V1_PREFIX)
 

@@ -26,15 +26,24 @@ def build_registry(
     reranker: Reranker,
     generator: Generator,
     analytics_engine: Engine,
+    graph_store=None,
     max_rows: int = 100,
+    max_hops: int = 2,
 ) -> AgentRegistry:
-    """A registry with the research and SQL agents wired to real backends."""
+    """A registry with the research and SQL agents wired to real backends, plus
+    the graph agent when a ``graph_store`` is supplied."""
     engine = RagEngine(HybridRetriever(store, embedder), reranker, generator)
     sql_tool = SqlQueryTool(analytics_engine, ALLOWED_TABLES, max_rows=max_rows)
 
     registry = AgentRegistry()
     registry.register(ResearchAgent(engine))
     registry.register(SqlAgent(generator, sql_tool, schema_description()))
+    if graph_store is not None:
+        from app.agents.graph_agent import GraphAgent
+        from app.graph import GraphRetriever
+
+        retriever = GraphRetriever(graph_store, max_hops=max_hops)
+        registry.register(GraphAgent(retriever, engine))
     return registry
 
 
@@ -45,7 +54,9 @@ def build_orchestrator(
     reranker: Reranker,
     generator: Generator,
     analytics_engine: Engine,
+    graph_store=None,
     max_rows: int = 100,
+    max_hops: int = 2,
     router: Router | None = None,
 ) -> Orchestrator:
     """The default orchestrator. Uses the deterministic keyword router unless a
@@ -56,7 +67,9 @@ def build_orchestrator(
         reranker=reranker,
         generator=generator,
         analytics_engine=analytics_engine,
+        graph_store=graph_store,
         max_rows=max_rows,
+        max_hops=max_hops,
     )
     return Orchestrator(
         registry, router=router or keyword_router, default_agent="research"
