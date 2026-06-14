@@ -3,9 +3,13 @@ into a single grounded, cited answer."""
 
 from dataclasses import dataclass, field
 
+from app.core.config import settings
+from app.insight.classifier import QueryType, classify_query
+from app.insight.prompts import build_system_prompt, build_user_prompt
 from app.rag.hybrid import HybridRetriever, RetrievedChunk
 from app.rag.llm import Generator
 from app.rag.rerank import Reranker
+from app.reasoning.history import Turn, build_retrieval_query, format_history
 
 SYSTEM_PROMPT = (
     "You are a precise assistant. Answer the question using ONLY the numbered "
@@ -13,6 +17,19 @@ SYSTEM_PROMPT = (
     "like [1] or [2]. If the answer is not contained in the sources, say you do "
     "not have enough information."
 )
+
+
+def _prompts(
+    query: str, context: str, query_type: QueryType, history: str = ""
+) -> tuple[str, str]:
+    """Build (system, user) prompts. With the Insight Engine on, this selects an
+    expert persona + structured report (and folds in conversation history);
+    otherwise it falls back to the plain grounded-QA prompt."""
+    if settings.INSIGHT_ENGINE_ENABLED:
+        return build_system_prompt(query_type), build_user_prompt(
+            query, context, history
+        )
+    return SYSTEM_PROMPT, f"Sources:\n{context}\n\nQuestion: {query}"
 
 
 @dataclass
@@ -27,6 +44,7 @@ class Citation:
 class RagAnswer:
     answer: str
     citations: list[Citation] = field(default_factory=list)
+    query_type: str = QueryType.GENERAL.value
 
 
 def build_context(chunks: list[RetrievedChunk]) -> tuple[str, list[Citation]]:
@@ -74,8 +92,21 @@ class RagEngine:
     def _retrieve(self, query: str, where: dict | None):
         return self.search(query, where=where)
 
-    def answer(self, query: str, *, where: dict | None = None) -> RagAnswer:
-        reranked = self._retrieve(query, where)
+    def answer(
+        self,
+        query: str,
+        *,
+        where: dict | None = None,
+        history: list[Turn] | None = None,
+    ) -> RagAnswer:
+        query_type = (
+            classify_query(query)
+            if settings.INSIGHT_ENGINE_ENABLED
+            else QueryType.GENERAL
+        )
+        turns = history or []
+        retrieval_query = build_retrieval_query(query, turns)
+        reranked = self._retrieve(retrieval_query, where)
         if not reranked:
             return RagAnswer(
                 answer=(
@@ -83,20 +114,30 @@ class RagEngine:
                     "to answer that."
                 ),
                 citations=[],
+                query_type=query_type.value,
             )
         context, citations = build_context(reranked)
-        user_prompt = f"Sources:\n{context}\n\nQuestion: {query}"
-        answer_text = self.generator.generate(SYSTEM_PROMPT, user_prompt)
-        return RagAnswer(answer=answer_text, citations=citations)
+        system, user_prompt = _prompts(
+            query, context, query_type, format_history(turns)
+        )
+        answer_text = self.generator.generate(system, user_prompt)
+        return RagAnswer(
+            answer=answer_text, citations=citations, query_type=query_type.value
+        )
 
     def stream(self, query: str, *, where: dict | None = None):
         """Return (citations, token_iterator). Citations are known up front;
         the answer text streams token by token."""
+        query_type = (
+            classify_query(query)
+            if settings.INSIGHT_ENGINE_ENABLED
+            else QueryType.GENERAL
+        )
         reranked = self._retrieve(query, where)
         if not reranked:
             return [], iter(
                 ["I don't have enough information in the documents to answer that."]
             )
         context, citations = build_context(reranked)
-        user_prompt = f"Sources:\n{context}\n\nQuestion: {query}"
-        return citations, self.generator.stream(SYSTEM_PROMPT, user_prompt)
+        system, user_prompt = _prompts(query, context, query_type)
+        return citations, self.generator.stream(system, user_prompt)

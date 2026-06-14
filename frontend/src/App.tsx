@@ -10,8 +10,9 @@ import { ChatView } from "./views/ChatView";
 import { GraphView } from "./views/GraphView";
 import { LibraryView } from "./views/LibraryView";
 import { MemoryView } from "./views/MemoryView";
+import { AnalyticsView } from "./views/AnalyticsView";
 
-export type View = "chat" | "graph" | "library" | "memory";
+export type View = "chat" | "graph" | "library" | "memory" | "analytics";
 
 export function App() {
   const { ready, user, currentWorkspace } = useAuth();
@@ -40,6 +41,8 @@ export function App() {
             <GraphView key={currentWorkspace.id} />
           ) : view === "library" ? (
             <LibraryView key={currentWorkspace.id} />
+          ) : view === "analytics" ? (
+            <AnalyticsView key={currentWorkspace.id} />
           ) : (
             <MemoryView key={currentWorkspace.id} />
           )}

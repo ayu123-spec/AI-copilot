@@ -1,11 +1,15 @@
 import type {
   AgentRunResponse,
+  AnalyticsSummary,
+  AppNotification,
   ChatResponse,
   Citation,
+  Conversation,
   Doc,
   GraphBuildResult,
   GraphData,
   Memory,
+  Message,
   RecalledMemory,
   SearchResult,
   TokenPair,
@@ -121,11 +125,40 @@ export const api = {
   },
 
   // ---- chat ----
-  chat(ws: string, query: string, conversationId?: string | null) {
+  chat(ws: string, query: string, conversationId?: string | null, deepResearch = false) {
     return request<ChatResponse>(`/workspaces/${ws}/chat`, {
       method: "POST",
-      body: JSON.stringify({ query, conversation_id: conversationId ?? null }),
+      body: JSON.stringify({
+        query,
+        conversation_id: conversationId ?? null,
+        deep_research: deepResearch,
+      }),
     });
+  },
+  listConversations(ws: string) {
+    return request<Conversation[]>(`/workspaces/${ws}/conversations`);
+  },
+  getMessages(conversationId: string) {
+    return request<Message[]>(`/conversations/${conversationId}/messages`);
+  },
+
+  // ---- analytics ----
+  getAnalytics(ws: string) {
+    return request<AnalyticsSummary>(`/workspaces/${ws}/analytics`);
+  },
+
+  // ---- notifications ----
+  listNotifications() {
+    return request<AppNotification[]>(`/notifications`);
+  },
+  unreadCount() {
+    return request<{ unread: number }>(`/notifications/unread_count`);
+  },
+  markNotificationRead(id: string) {
+    return request<AppNotification>(`/notifications/${id}/read`, { method: "POST" });
+  },
+  markAllNotificationsRead() {
+    return request<{ unread: number }>(`/notifications/read_all`, { method: "POST" });
   },
 
   // ---- agents ----

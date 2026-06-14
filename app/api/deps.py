@@ -150,3 +150,10 @@ def get_image_describer():
     from app.multimodal.factory import get_image_describer as _get
 
     return _get()
+
+
+def get_guardrails():
+    """Guardrails for the chat/agent path (singleton). Overridable in tests."""
+    from app.guardrails.factory import get_guardrails as _get
+
+    return _get()

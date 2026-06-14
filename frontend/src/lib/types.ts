@@ -51,6 +51,26 @@ export interface ChatResponse {
   message_id: string;
   answer: string;
   citations: Citation[];
+  query_type?: string;
+  follow_ups?: string[];
+  grounding?: string;
+  research_steps?: { sub_question: string; sources_found: number }[];
+}
+
+export interface Conversation {
+  id: string;
+  workspace_id: string;
+  title: string;
+  created_at: string;
+}
+
+export interface Message {
+  id: string;
+  role: "user" | "assistant" | string;
+  content: string;
+  citations: Citation[];
+  feedback?: string | null;
+  created_at: string;
 }
 
 export interface AgentStep {
@@ -114,4 +134,44 @@ export interface GraphData {
 export interface GraphBuildResult {
   entities: number;
   relationships: number;
+}
+
+export interface CountItem {
+  label: string;
+  count: number;
+}
+
+export interface TimePoint {
+  date: string;
+  count: number;
+}
+
+export interface AnalyticsSummary {
+  total_queries: number;
+  avg_latency_ms: number | null;
+  conversations: number;
+  messages_total: number;
+  messages_user: number;
+  messages_assistant: number;
+  feedback_up: number;
+  feedback_down: number;
+  documents: number;
+  documents_ready: number;
+  chunks_total: number;
+  agent_runs: number;
+  by_type: CountItem[];
+  agent_mix: CountItem[];
+  query_type_mix: CountItem[];
+  activity: TimePoint[];
+}
+
+export interface AppNotification {
+  id: string;
+  workspace_id: string | null;
+  level: string;
+  title: string;
+  body: string;
+  event_type: string;
+  read: boolean;
+  created_at: string;
 }

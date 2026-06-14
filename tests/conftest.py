@@ -51,6 +51,7 @@ async def client():
         get_embedder,
         get_generator,
         get_graph_store,
+        get_guardrails,
         get_image_describer,
         get_memory_store,
         get_reranker,
@@ -58,6 +59,7 @@ async def client():
     )
     from app.embeddings.embedders import FakeEmbedder
     from app.graph.memory_store import InMemoryGraphStore
+    from app.guardrails.guard import Guardrails
     from app.multimodal.describers import FakeImageDescriber
     from app.rag.llm import FakeGenerator
     from app.rag.rerank import FakeReranker
@@ -82,6 +84,9 @@ async def client():
     app.dependency_overrides[get_reranker] = lambda: FakeReranker()
     app.dependency_overrides[get_generator] = lambda: FakeGenerator()
     app.dependency_overrides[get_image_describer] = lambda: FakeImageDescriber()
+    app.dependency_overrides[get_guardrails] = lambda: Guardrails(
+        block_injection=True, redact_pii=True
+    )
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:

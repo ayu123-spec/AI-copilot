@@ -127,10 +127,11 @@ release at every stage beats a perpetual work-in-progress.
   re-runnable via `python -m app.evaluation.run_full`
 - *Done:* 151 tests pass; report is re-runnable on every change.
 
-**Module 16 — Guardrails** *(~5 days)*
-- Protect against prompt injection, data leakage, hallucination, toxic output
-- Frameworks: Guardrails AI / NeMo Guardrails, wired into the graph
-- *Done:* injection and PII-leak attempts are blocked, proven by tests.
+**Module 16 — Guardrails** *(~5 days)* ✅
+- Block prompt-injection / jailbreaks (input) and redact PII/secrets (output);
+  optional low-grounding + blocked-term flagging
+- Deterministic + offline, wired into chat and the agent endpoints
+- *Done:* injection attempts are refused and PII is redacted, proven by tests.
 
 **Module 17 — Analytics Dashboard** *(~5 days)*
 - Track queries, active users, retrieval accuracy, cost, agent usage, tokens

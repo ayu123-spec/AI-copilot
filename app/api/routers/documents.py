@@ -19,7 +19,7 @@ from app.ingestion.parsers import EXTENSION_CONTENT_TYPE, UnsupportedFileType
 from app.models.user import User, UserRole
 from app.multimodal.base import ImageDescriber
 from app.schemas.document import DocumentOut, SearchRequest, SearchResultOut
-from app.services import ingestion_service, workspace_service
+from app.services import ingestion_service, notification_service, workspace_service
 from app.vectorstore.qdrant_store import VectorStore
 
 router = APIRouter(tags=["documents"])
@@ -77,6 +77,20 @@ async def upload_document(
         ) from exc
     finally:
         os.unlink(tmp_path)
+
+    await notification_service.create(
+        db,
+        organization_id=current.organization_id,
+        workspace_id=workspace_id,
+        title=f"Document ready: {document.filename}",
+        body=(
+            f"Processed into {document.num_chunks} chunks and added to your "
+            "knowledge base. You can now ask questions about it."
+        ),
+        level="success",
+        event_type="ingestion",
+    )
+    await db.commit()
     return document
 
 

@@ -1,8 +1,23 @@
+# Python
 __pycache__/
 *.pyc
-.env
 .venv/
-*.db
 .pytest_cache/
-qdrant_storage/
 .ruff_cache/
+*.egg-info/
+
+# Secrets & local data
+.env
+*.db
+qdrant_storage/
+
+# Node / frontend build
+node_modules/
+dist/
+frontend/node_modules/
+frontend/dist/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

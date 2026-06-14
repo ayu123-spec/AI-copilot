@@ -46,6 +46,24 @@ class Settings(BaseSettings):
     LLM_MODEL: str = ""  # blank = use the backend's default model
     ANTHROPIC_API_KEY: str | None = None
 
+    # Insight Engine: classify the query and answer with an expert persona +
+    # structured report instead of generic source regurgitation.
+    INSIGHT_ENGINE_ENABLED: bool = True
+
+    # Notifications: in-app feed (always on) + one outbound channel.
+    # NOTIFICATION_CHANNEL: "console" (default) | "memory" | "slack" | "teams" | "email"
+    NOTIFICATIONS_ENABLED: bool = True
+    NOTIFICATION_CHANNEL: str = "console"
+    NOTIFICATION_MIN_LEVEL: str = "info"
+    SLACK_WEBHOOK_URL: str | None = None
+    TEAMS_WEBHOOK_URL: str | None = None
+    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_USER: str | None = None
+    SMTP_PASSWORD: str | None = None
+    NOTIFICATION_EMAIL_FROM: str | None = None
+    NOTIFICATION_EMAIL_TO: str | None = None
+
     # Read-only analytics database for the SQL agent (separate from the app DB).
     ANALYTICS_DATABASE_URL: str = "sqlite:///./analytics.db"
     SQL_AGENT_MAX_ROWS: int = 100
@@ -67,6 +85,14 @@ class Settings(BaseSettings):
     # Multimodal RAG: describe images so they become retrievable text.
     IMAGE_DESCRIBER_BACKEND: str = "fake"  # "fake" | "anthropic"
     VISION_MODEL: str = "claude-3-5-sonnet-20241022"
+
+    # Guardrails: input/output safety for the chat + agent path.
+    GUARDRAILS_ENABLED: bool = True
+    GUARDRAIL_BLOCK_INJECTION: bool = True
+    GUARDRAIL_REDACT_PII: bool = True
+    GUARDRAIL_REDACT_PII_IN_INPUT: bool = False
+    GUARDRAIL_MIN_FAITHFULNESS: float = 0.0  # 0 disables the grounding check
+    GUARDRAIL_TOXICITY_DENYLIST: list[str] = []
 
     # CORS: origins allowed to call the API from a browser (the React dev app).
     CORS_ORIGINS: list[str] = [

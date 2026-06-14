@@ -11,6 +11,7 @@ from app.models.conversation import MessageRole
 class ChatRequest(BaseModel):
     query: str = Field(min_length=1)
     conversation_id: str | None = None  # continue an existing conversation
+    deep_research: bool = False  # multi-step decompose -> research -> synthesize
 
 
 class CitationOut(BaseModel):
@@ -20,11 +21,20 @@ class CitationOut(BaseModel):
     snippet: str
 
 
+class ResearchStepOut(BaseModel):
+    sub_question: str
+    sources_found: int
+
+
 class ChatResponse(BaseModel):
     conversation_id: str
     message_id: str
     answer: str
     citations: list[CitationOut]
+    query_type: str = "general"
+    follow_ups: list[str] = []
+    grounding: str = "ungrounded"
+    research_steps: list[ResearchStepOut] = []
 
 
 class ConversationOut(BaseModel):

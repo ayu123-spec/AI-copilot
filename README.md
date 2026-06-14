@@ -126,7 +126,7 @@ To try ingestion locally without downloading a model, set `EMBEDDING_BACKEND=fak
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q          # 146 tests: auth, ingestion, RAG, agents, memory, graph, multimodal + tenant isolation
+pytest -q          # 159 tests: auth, ingestion, RAG, agents, memory, graph, multimodal, eval, guardrails + tenant isolation
 ```
 
 ## API surface (prefix `/api/v1`)
@@ -222,6 +222,21 @@ python -m app.evaluation.run_full
 With the default `fake` LLM the numbers are illustrative; set `LLM_BACKEND=anthropic`
 (+ `ANTHROPIC_API_KEY`) for meaningful, publishable numbers. The metric functions are
 covered by tests so they stay honest on every change.
+
+## Guardrails
+
+Input and output safety, wired into the chat and agent endpoints (`app/guardrails/`):
+
+- **Input** — prompt-injection / jailbreak attempts (instruction-override,
+  system-prompt extraction, role/persona jailbreaks, guardrail-bypass) are detected
+  and politely refused before the query reaches the model.
+- **Output** — PII and secrets (emails, phone numbers, SSNs, cards, IPs, API/AWS keys)
+  are redacted from answers; answers can additionally be flagged for low grounding
+  (faithfulness) or blocked terms.
+
+All deterministic and offline (regex + heuristics), configurable via `GUARDRAIL_*`
+settings, with room for an optional LLM-moderation layer. Tests prove that injection
+attempts are refused (in both chat and the agent path) and that PII is redacted.
 
 ## Next: Phase 5
 

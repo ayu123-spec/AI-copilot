@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  BarChart3,
   Brain,
   Check,
   ChevronsUpDown,
@@ -20,6 +21,7 @@ const NAV: { id: View; label: string; icon: typeof Brain }[] = [
   { id: "graph", label: "Knowledge Graph", icon: Share2 },
   { id: "library", label: "Library", icon: FileText },
   { id: "memory", label: "Memory", icon: Database },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 export function Sidebar({

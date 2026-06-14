@@ -15,6 +15,7 @@ from app.api.deps import (
     get_embedder,
     get_generator,
     get_graph_store,
+    get_guardrails,
     get_memory_store,
     get_reranker,
     get_vector_store,
@@ -22,6 +23,8 @@ from app.api.deps import (
 from app.core.config import settings
 from app.db.base import get_db
 from app.embeddings.base import Embedder
+from app.guardrails.base import INJECTION_REFUSAL
+from app.guardrails.guard import Guardrails
 from app.memory import build_agent_context, list_memories, recall, remember
 from app.models.conversation import MessageRole
 from app.models.user import User
@@ -78,8 +81,24 @@ async def run_agent(
     generator: Generator = Depends(get_generator),
     analytics_engine: Engine = Depends(get_analytics_engine),
     graph_store=Depends(get_graph_store),
+    guardrails: Guardrails = Depends(get_guardrails),
 ):
     await _require_workspace(db, workspace_id, current)
+
+    # Input guardrail: refuse prompt-injection / jailbreak attempts before routing.
+    gate = guardrails.guard_input(data.query)
+    if not gate.allowed:
+        import uuid
+
+        return AgentRunResponse(
+            run_id=uuid.uuid4().hex,
+            conversation_id=data.conversation_id,
+            agent="guardrail",
+            answer=INJECTION_REFUSAL,
+            citations=[],
+            steps=[],
+            metadata={"blocked": True, "reasons": gate.reasons},
+        )
 
     # Resolve or create the conversation, if we're persisting to history.
     conversation_id = data.conversation_id
