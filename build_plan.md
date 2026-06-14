@@ -120,10 +120,12 @@ release at every stage beats a perpetual work-in-progress.
 
 ## Phase 5 — Trust, Quality & Observability (Weeks 16–18) → release **v0.6**
 
-**Module 15 — Evaluation Framework** *(~5 days)*
-- Metrics: faithfulness, context precision/recall, hallucination rate, latency, cost
-- Frameworks: RAGAS + DeepEval; fixed regression test set
-- *Done:* published numbers in the README, re-runnable on every change.
+**Module 15 — Evaluation Framework** *(~5 days)* ✅
+- Metrics: faithfulness, hallucination rate, answer relevance, citation accuracy,
+  context precision/recall, MRR, latency, estimated cost
+- Deterministic offline heuristics + opt-in LLM judge; fixed regression set;
+  re-runnable via `python -m app.evaluation.run_full`
+- *Done:* 151 tests pass; report is re-runnable on every change.
 
 **Module 16 — Guardrails** *(~5 days)*
 - Protect against prompt injection, data leakage, hallucination, toxic output

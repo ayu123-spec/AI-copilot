@@ -202,6 +202,27 @@ The knowledge graph defaults to an in-process store (no server). For a real grap
 `GRAPH_BACKEND=neo4j` with `NEO4J_URI` / `NEO4J_USER` / `NEO4J_PASSWORD` (the `neo4j`
 driver is already in `requirements.txt`), and optionally `GRAPH_ENTITY_EXTRACTOR=llm`.
 
+## Evaluation
+
+The `app/evaluation/` package scores both retrieval and answer quality on a fixed,
+version-controlled regression set (`dataset.py`), so results are comparable across changes.
+
+- **Retrieval** — precision@k, recall@k (hit rate), MRR (`metrics.py`, `harness.py`).
+- **Answer quality** — faithfulness, hallucination rate, answer relevance, and citation
+  accuracy (`answer_metrics.py`): deterministic, offline heuristics, with an opt-in
+  `LLMJudge` for LLM-graded faithfulness (RAGAS/DeepEval-style).
+- **Routing** — orchestrator routing accuracy (`agent_eval.py`).
+
+Run the end-to-end answer report:
+
+```bash
+python -m app.evaluation.run_full
+```
+
+With the default `fake` LLM the numbers are illustrative; set `LLM_BACKEND=anthropic`
+(+ `ANTHROPIC_API_KEY`) for meaningful, publishable numbers. The metric functions are
+covered by tests so they stay honest on every change.
+
 ## Next: Phase 5
 
 Phase 4 is complete (**v0.5**). Phase 5 (**v0.6**) adds trust & observability:
