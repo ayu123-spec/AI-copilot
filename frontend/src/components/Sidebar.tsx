@@ -68,7 +68,6 @@ export function Sidebar({
         </div>
         <div>
           <div className="brand-name">Cortex</div>
-          <div className="brand-sub">KNOWLEDGE COPILOT</div>
         </div>
       </div>
 

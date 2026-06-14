@@ -22,3 +22,5 @@ sqlparse==0.5.3
 langgraph==0.2.60
 # Phase 4: knowledge graph (lazy-imported; only needed for GRAPH_BACKEND=neo4j)
 neo4j==5.27.0
+# Phase 2+: real LLM answers (Claude). Needed when LLM_BACKEND=anthropic.
+anthropic>=0.39.0

@@ -11,7 +11,7 @@ import type { GraphData, GraphEntity } from "../lib/types";
 const TYPE_COLOR: Record<string, string> = {
   Person: "#35e0ce",
   Company: "#8e86ff",
-  Department: "#ffb454",
+  Department: "#38bdf8",
   Project: "#58e1a0",
   Entity: "#7c89a8",
 };

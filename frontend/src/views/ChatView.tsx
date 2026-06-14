@@ -61,9 +61,10 @@ const SUGGESTIONS = [
 ];
 
 export function ChatView() {
-  const { currentWorkspace } = useAuth();
+  const { currentWorkspace, user } = useAuth();
   const { push } = useToast();
   const ws = currentWorkspace!.id;
+  const firstName = (user?.full_name || "").trim().split(/\s+/)[0] || "there";
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -267,7 +268,7 @@ export function ChatView() {
       <div className="chat">
         <div className="chat-scroll" ref={scrollRef}>
           {messages.length === 0 ? (
-            <Empty mode={mode} onPick={(t) => send(t)} />
+            <Empty mode={mode} name={firstName} onPick={(t) => send(t)} />
           ) : (
             <div className="chat-inner">
               {messages.map((m) =>
@@ -363,18 +364,29 @@ export function ChatView() {
   );
 }
 
-function Empty({ mode, onPick }: { mode: Mode; onPick: (t: string) => void }) {
+function Empty({
+  mode,
+  name,
+  onPick,
+}: {
+  mode: Mode;
+  name: string;
+  onPick: (t: string) => void;
+}) {
   return (
     <div className="empty">
       <div className="empty-inner">
         <div className="empty-orb">
           <Sparkles size={32} />
         </div>
-        <h1>{mode === "chat" ? "Ask your knowledge base" : "Delegate to the agents"}</h1>
+        <div className="welcome-eyebrow mono">WELCOME, DEAR</div>
+        <h1 className="grad-text">{name}</h1>
         <p>
           {mode === "chat"
-            ? "Answers are grounded in your documents with citations, and every chat is saved to your history. Use ＋ to add a file right here."
-            : "One request is routed automatically to the right specialist — research, SQL, or the knowledge graph — with a full reasoning trace."}
+            ? "Ask anything about your documents — answers are grounded with citations, the thread is remembered, and ＋ adds a file right here."
+            : mode === "research"
+              ? "Pose a big question and I'll decompose it, research each part across your documents, and synthesize one structured report."
+              : "Delegate a task — it's routed automatically to the right specialist (research, SQL, or the knowledge graph) with a full reasoning trace."}
         </p>
         <div className="suggest-grid">
           {SUGGESTIONS.map((s) => (
