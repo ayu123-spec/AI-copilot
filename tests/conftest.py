@@ -51,12 +51,14 @@ async def client():
         get_embedder,
         get_generator,
         get_graph_store,
+        get_image_describer,
         get_memory_store,
         get_reranker,
         get_vector_store,
     )
     from app.embeddings.embedders import FakeEmbedder
     from app.graph.memory_store import InMemoryGraphStore
+    from app.multimodal.describers import FakeImageDescriber
     from app.rag.llm import FakeGenerator
     from app.rag.rerank import FakeReranker
     from app.vectorstore.qdrant_store import VectorStore
@@ -79,6 +81,7 @@ async def client():
     app.dependency_overrides[get_analytics_engine] = lambda: analytics_engine
     app.dependency_overrides[get_reranker] = lambda: FakeReranker()
     app.dependency_overrides[get_generator] = lambda: FakeGenerator()
+    app.dependency_overrides[get_image_describer] = lambda: FakeImageDescriber()
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:

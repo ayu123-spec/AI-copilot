@@ -76,6 +76,7 @@ export interface SearchResult {
   document_id?: string | null;
   page_number?: number | null;
   source?: string | null;
+  modality?: string;
 }
 
 export interface Memory {

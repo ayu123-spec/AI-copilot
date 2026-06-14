@@ -21,6 +21,22 @@ EXTENSION_CONTENT_TYPE = {
     ".markdown": "text/markdown",
 }
 
+# Images are handled by the multimodal pipeline (described, then indexed as text).
+IMAGE_CONTENT_TYPE = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".bmp": "image/bmp",
+}
+EXTENSION_CONTENT_TYPE.update(IMAGE_CONTENT_TYPE)
+
+
+def is_image(ext: str) -> bool:
+    """True if the extension is an image type handled by multimodal ingestion."""
+    return ext.lower() in IMAGE_CONTENT_TYPE
+
 
 class UnsupportedFileType(Exception):
     pass

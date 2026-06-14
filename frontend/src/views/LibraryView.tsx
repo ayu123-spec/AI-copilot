@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FileText, Search, Trash2, UploadCloud } from "lucide-react";
+import { FileText, Image as ImageIcon, Search, Trash2, UploadCloud } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../state/auth";
 import { useToast } from "../state/toast";
@@ -95,7 +95,8 @@ export function LibraryView() {
             {uploading ? "Uploading…" : "Drop files or click to upload"}
           </div>
           <div className="dim" style={{ fontSize: 13, marginTop: 5 }}>
-            PDF, DOCX, TXT, Markdown — chunked, embedded, and made searchable
+            PDF, DOCX, PPTX, TXT, Markdown, and images (PNG/JPG) — chunked,
+            described, embedded, and made searchable
           </div>
           <input
             ref={fileRef}
@@ -128,16 +129,20 @@ export function LibraryView() {
             )}
             {results.map((r, i) => (
               <div className="doc-row" key={i} style={{ alignItems: "flex-start" }}>
-                <div className="doc-icon">
-                  <Quote />
+                <div
+                  className="doc-icon"
+                  style={r.modality === "image" ? { color: "var(--violet)" } : undefined}
+                >
+                  {r.modality === "image" ? <ImageIcon size={16} /> : <FileText size={16} />}
                 </div>
                 <div className="doc-meta">
                   <div className="msg-text" style={{ fontSize: 13.5 }}>
                     {r.text}
                   </div>
                   <div className="doc-sub">
-                    {(r.source || "document")}
-                    {r.page_number != null ? ` · p.${r.page_number}` : ""} · score{" "}
+                    {r.source || "document"}
+                    {r.page_number != null ? ` · p.${r.page_number}` : ""}
+                    {r.modality === "image" ? " · image" : ""} · score{" "}
                     {r.score.toFixed(3)}
                   </div>
                 </div>
@@ -178,8 +183,4 @@ export function LibraryView() {
       </div>
     </div>
   );
-}
-
-function Quote() {
-  return <FileText size={16} />;
 }

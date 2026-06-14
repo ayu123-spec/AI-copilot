@@ -1,5 +1,12 @@
 """Orchestrates ingestion: parse -> clean -> chunk -> embed -> store in Qdrant,
-while persisting a Document row for tracking. Everything is tenant-scoped."""
+while persisting a Document row for tracking. Everything is tenant-scoped.
+
+Images are routed through the multimodal pipeline: an ImageDescriber turns them
+into text, which is then chunked and embedded like any other content and tagged
+with ``modality="image"`` so it stays distinguishable at retrieval time.
+"""
+
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,8 +15,10 @@ from app.chunking.chunkers import chunk_document
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.embeddings.base import Embedder
-from app.ingestion.parsers import parse_file
+from app.ingestion.base import ParsedDocument, ParsedPage
+from app.ingestion.parsers import IMAGE_CONTENT_TYPE, is_image, parse_file
 from app.models.document import Document, DocumentStatus
+from app.multimodal.base import ImageDescriber
 from app.preprocessing.cleaner import clean_document
 from app.vectorstore.qdrant_store import SearchResult, VectorStore
 
@@ -25,12 +34,34 @@ async def ingest_file(
     workspace_id: str,
     embedder: Embedder,
     store: VectorStore,
+    image_describer: ImageDescriber | None = None,
     strategy: str | None = None,
 ) -> Document:
     """Run the pipeline for one file and return the created Document record."""
     strategy = strategy or settings.CHUNK_STRATEGY
 
-    parsed = clean_document(parse_file(path))
+    ext = Path(path).suffix.lower()
+    if is_image(ext):
+        if image_describer is None:
+            from app.multimodal.factory import get_image_describer
+
+            image_describer = get_image_describer()
+        content_type = IMAGE_CONTENT_TYPE.get(ext, "image/png")
+        description = image_describer.describe(
+            Path(path).read_bytes(), filename=filename, content_type=content_type
+        )
+        parsed = ParsedDocument(
+            filename,
+            content_type,
+            [ParsedPage(page_number=1, text=description.text)],
+            {"source": filename, "modality": "image"},
+        )
+        modality = "image"
+    else:
+        parsed = parse_file(path)
+        modality = "text"
+
+    parsed = clean_document(parsed)
     parsed.filename = filename  # use the user's original name, not the temp path
     document = Document(
         organization_id=organization_id,
@@ -50,6 +81,7 @@ async def ingest_file(
                     "document_id": document.id,
                     "workspace_id": workspace_id,
                     "organization_id": organization_id,
+                    "modality": modality,
                 }
             )
         vectors = embedder.embed([c.text for c in chunks]) if chunks else []

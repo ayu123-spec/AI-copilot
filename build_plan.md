@@ -99,21 +99,22 @@ release at every stage beats a perpetual work-in-progress.
 
 ---
 
-## Phase 4 — Knowledge Graph & Advanced Retrieval (Weeks 12–15) → release **v0.5**
+## Phase 4 — Knowledge Graph & Advanced Retrieval (Weeks 12–15) → release **v0.5** ✅ COMPLETE
 
-**Module 12 — Knowledge Graph (Neo4j)** *(~6 days)*
+**Module 12 — Knowledge Graph (Neo4j)** *(~6 days)* ✅
 - Entity extraction: Person, Company, Project, Department
 - Relationships: WORKS_FOR, MANAGES, REPORTS_TO; Cypher queries
-- *Done:* documents populate a queryable graph.
+- *Done:* documents populate a queryable graph (in-process + Neo4j backends).
 
-**Module 13 — GraphRAG** *(~6 days)*
+**Module 13 — GraphRAG** *(~6 days)* ✅
 - Fuse knowledge-graph traversal with vector retrieval for multi-hop questions
 - *Done:* answers questions pure vector search cannot (multi-hop reasoning).
 
-**Module 14 — Multimodal RAG** *(~6 days)*
-- Ingest and reason over images, charts, tables, scanned PDFs
-- Answer "explain this chart"-type questions
-- *Done:* a chart/image query returns a grounded explanation.
+**Module 14 — Multimodal RAG** *(~6 days)* ✅
+- Ingest and reason over images, charts, tables, scanned pages
+- Pluggable ImageDescriber (offline fake default + lazy vision-LLM backend);
+  image text indexed with `modality="image"`
+- *Done:* a chart/image query returns a grounded explanation; 146 tests pass.
 
 ---
 

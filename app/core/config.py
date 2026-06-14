@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     GRAPH_ENTITY_EXTRACTOR: str = "rule"
     GRAPH_MAX_HOPS: int = 2
 
+    # Multimodal RAG: describe images so they become retrievable text.
+    IMAGE_DESCRIBER_BACKEND: str = "fake"  # "fake" | "anthropic"
+    VISION_MODEL: str = "claude-3-5-sonnet-20241022"
+
     # CORS: origins allowed to call the API from a browser (the React dev app).
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",

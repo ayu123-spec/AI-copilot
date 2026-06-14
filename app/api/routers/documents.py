@@ -6,11 +6,18 @@ import tempfile
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_embedder, get_vector_store, require_roles
+from app.api.deps import (
+    get_current_user,
+    get_embedder,
+    get_image_describer,
+    get_vector_store,
+    require_roles,
+)
 from app.db.base import get_db
 from app.embeddings.base import Embedder
 from app.ingestion.parsers import EXTENSION_CONTENT_TYPE, UnsupportedFileType
 from app.models.user import User, UserRole
+from app.multimodal.base import ImageDescriber
 from app.schemas.document import DocumentOut, SearchRequest, SearchResultOut
 from app.services import ingestion_service, workspace_service
 from app.vectorstore.qdrant_store import VectorStore
@@ -39,6 +46,7 @@ async def upload_document(
     db: AsyncSession = Depends(get_db),
     embedder: Embedder = Depends(get_embedder),
     store: VectorStore = Depends(get_vector_store),
+    image_describer: ImageDescriber = Depends(get_image_describer),
 ):
     await _require_workspace(db, workspace_id, current)
 
@@ -61,6 +69,7 @@ async def upload_document(
             workspace_id=workspace_id,
             embedder=embedder,
             store=store,
+            image_describer=image_describer,
         )
     except UnsupportedFileType as exc:
         raise HTTPException(
@@ -108,6 +117,7 @@ async def search_documents(
             document_id=r.metadata.get("document_id"),
             page_number=r.metadata.get("page_number"),
             source=r.metadata.get("source"),
+            modality=r.metadata.get("modality", "text"),
         )
         for r in results
     ]

@@ -31,3 +31,4 @@ class SearchResultOut(BaseModel):
     document_id: str | None = None
     page_number: int | None = None
     source: str | None = None
+    modality: str = "text"

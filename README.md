@@ -1,4 +1,4 @@
-# Enterprise AI Knowledge Copilot — Phases 0–4 (Knowledge Graph, partial)
+# Enterprise AI Knowledge Copilot — Phases 0–4 (complete)
 
 **v0.1** is the foundation (auth, multi-tenant users, workspaces, infra).
 **v0.2** adds the ingestion engine: upload documents, parse + clean + chunk + embed
@@ -75,7 +75,7 @@ the chat history as a conversation.
 **Routing evaluation** — `app/evaluation/agent_eval.py` measures routing accuracy on a
 small labelled query set.
 
-## What's implemented — Phase 4 (Knowledge graph & GraphRAG, v0.5 — partial)
+## What's implemented — Phase 4 (Knowledge graph, GraphRAG & Multimodal, v0.5)
 
 **Knowledge graph** — a tenant-scoped property graph of entities (Person, Company,
 Project, Department) and relationships (`WORKS_FOR`, `MANAGES`, `REPORTS_TO`, `PART_OF`,
@@ -94,7 +94,16 @@ joins the orchestrator (relationship/multi-hop questions route to it) and fuses 
 graph facts with vector-retrieved passages — answering multi-hop questions that pure
 vector search cannot, while still citing documents.
 
-> Remaining for v0.5: Module 14 (Multimodal RAG). Tagged once that lands.
+**Multimodal RAG** — images (charts, diagrams, scanned pages) become first-class,
+citable evidence. On upload, an image is passed through a pluggable `ImageDescriber`
+that produces a text description; that text is chunked, embedded, and stored like any
+other content, tagged with `modality="image"`. The describer has two backends: a
+deterministic, offline `FakeImageDescriber` (default, used by tests and local dev) and
+an opt-in vision-LLM `LLMImageDescriber` (`IMAGE_DESCRIBER_BACKEND=anthropic`,
+SDK lazy-imported). The result: "explain this chart" works, and search results report
+whether a hit came from text or an image.
+
+This completes Phase 4 → **v0.5**.
 
 ## Run it
 
@@ -117,7 +126,7 @@ To try ingestion locally without downloading a model, set `EMBEDDING_BACKEND=fak
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q          # 140 tests: auth, ingestion, RAG, agents, memory + tenant isolation
+pytest -q          # 146 tests: auth, ingestion, RAG, agents, memory, graph, multimodal + tenant isolation
 ```
 
 ## API surface (prefix `/api/v1`)
@@ -193,7 +202,8 @@ The knowledge graph defaults to an in-process store (no server). For a real grap
 `GRAPH_BACKEND=neo4j` with `NEO4J_URI` / `NEO4J_USER` / `NEO4J_PASSWORD` (the `neo4j`
 driver is already in `requirements.txt`), and optionally `GRAPH_ENTITY_EXTRACTOR=llm`.
 
-## Next: finish Phase 4, then Phase 5
+## Next: Phase 5
 
-Module 14 (Multimodal RAG) completes Phase 4 and the **v0.5** tag. After that, Phase 5
-adds the evaluation framework, guardrails, and an analytics dashboard. See `BUILD_PLAN.md`.
+Phase 4 is complete (**v0.5**). Phase 5 (**v0.6**) adds trust & observability:
+an evaluation framework, guardrails, an analytics dashboard, and notifications.
+See `BUILD_PLAN.md`.

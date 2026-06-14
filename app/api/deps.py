@@ -142,3 +142,11 @@ def get_entity_extractor():
     from app.graph.factory import get_entity_extractor as _get
 
     return _get()
+
+
+def get_image_describer():
+    """Image describer for multimodal ingestion (singleton). Overridden in tests
+    with the deterministic fake."""
+    from app.multimodal.factory import get_image_describer as _get
+
+    return _get()
